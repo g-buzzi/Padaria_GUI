@@ -1,0 +1,6 @@
+.idea
+__pycache__/
+*.pyc
+controladores/__pycache__/
+entidades/__pycache__/
+telas/__pycache__/
