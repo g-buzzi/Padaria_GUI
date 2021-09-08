@@ -20,7 +20,8 @@ class Controlador(ABC):
 
     @tela.setter
     def tela(self, tela: Tela):
-        self.__tela = Tela
+        self.__tela.close()
+        self.__tela = tela
 
     
 
