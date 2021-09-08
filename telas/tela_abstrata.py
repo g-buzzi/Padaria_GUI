@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
+from excecoes.WindowClosed import WindowClosed
 from tkinter.constants import CENTER, LEFT
 import PySimpleGUI as sg
-
 
 class Tela(ABC):
     @abstractmethod
@@ -20,6 +20,12 @@ class Tela(ABC):
     @window.setter
     def window(self, window):
         self.__window = window
+
+    def read(self):
+        event, values = self.__window.read()
+        if event == sg.WIN_CLOSED:
+            raise WindowClosed()
+        return (event, values)
 
     def close(self):
         if self.__window is not None:
@@ -41,8 +47,8 @@ class Tela(ABC):
         sg.theme_add_new("Padaria", tema)
         sg.theme("Padaria")
 
-    def janela(self, layout, titulo = "Padaria Elsecall", background = None):
-        janela = sg.Window(titulo, layout= layout, margins=(0,0), finalize= True, element_justification = LEFT, use_custom_titlebar= True, background_color= background)
+    def janela(self, layout, titulo = "Padaria Elsecall", background = None, justificacao = LEFT):
+        janela = sg.Window(titulo, layout= layout, margins=(0,0), finalize= True, element_justification = justificacao, use_custom_titlebar= True, background_color= background)
         return janela
 
     def titulo(self, texto, font_size = 14):
@@ -53,25 +59,27 @@ class Tela(ABC):
                         relief= sg.RELIEF_FLAT, border_width=10)
         return titulo
 
-    def botao(self, texto, chave, desativado = False, expand_x = False, expand_y = False, padding = None):
+    def botao(self, texto, chave, desativado = False, expand_x = False, expand_y = False, tamanho = (None, None), padding = None):
         if desativado:
             botao = sg.Button(button_text = texto, key = chave, 
                               disabled=True, button_color=("#3A312C", "#FC9326"), 
                               disabled_button_color= ("#3A312C", "#3A312C"),
                               expand_x= expand_x, expand_y= expand_y,
-                              pad = padding)
+                              pad = padding, size= tamanho)
         else:
             botao = sg.Button(button_text = texto, key = chave,
                               expand_x= expand_x, expand_y= expand_y,
-                              pad = padding)
+                              pad = padding, size= tamanho)
         return botao
 
     def label(self, texto = "", tamanho = (None, None)):
         label = sg.Text(texto, font="Arial 10 bold", size= tamanho, justification= LEFT)
         return label
 
-    def entrada(self, chave, valor = "", leitura = False, tamanho = (50, 1)):
-        entrada = sg.InputText(default_text = valor, key= chave, size= tamanho,  readonly = leitura, disabled_readonly_background_color= "#FFEDB7", disabled_readonly_text_color= "#3A312C", border_width=0)
+    def entrada(self, chave, valor = "", leitura = False, tamanho = (None, None), expand_x = True):
+        if tamanho != (None, None):
+            expand_x = False
+        entrada = sg.InputText(default_text = valor, key= chave, size= tamanho,  readonly = leitura, disabled_readonly_background_color= "#FFEDB7", disabled_readonly_text_color= "#3A312C", border_width=0, expand_x = expand_x)
         return entrada
 
     def textarea(self, chave, valor = "", leitura = False, tamanho = (55, 10)):
@@ -122,6 +130,15 @@ class Tela(ABC):
                           auto_size_columns= auto_size)
         return tabela
 
+    def menu(self, botoes = dict, tamanho_botao = (40,2), padding_botao = (5, 2.5)):
+        menu = []
+        for nome, chave in botoes.items():
+            bt = self.botao(nome, chave, tamanho= tamanho_botao, padding= padding_botao)
+            menu.append([bt])
+        return menu
+
+#======================================= Funções Universais =============================================
+
     def configura_lista(self, chave_lista = "lista"):
         self.__window[chave_lista].bind('<Double-1>', "_clique_duplo")
 
@@ -130,35 +147,3 @@ class Tela(ABC):
 
     def mensagem_erro(self, mensagem: str):
         sg.popup_error(mensagem, title = "Error")
-
-""" Fazer novas checagens
-
-    def le_num_inteiro(self, mensagem: str = "Escolha uma opção: ", valores_validos: list = None) -> int:
-        while True:
-            try:
-                inteiro = input(mensagem)
-                inteiro = int(inteiro) 
-                if valores_validos and inteiro not in valores_validos:
-                    raise ValueError
-                if inteiro < 0:
-                    self.mensagem_erro("Valor incorreto. Digite um valor maior que 0")
-                else:
-                    return inteiro
-            except ValueError:
-                self.mensagem_erro("Valor incorreto. Digite um número inteiro válido")
-
-    def le_num_fracionario(self, mensagem: str = "Digite um valor", digitos: int = 2):
-        while True:
-            try:
-                fracionario = round(float(input(mensagem)), digitos)
-                if fracionario >= 0:
-                    return fracionario
-                self.mensagem_erro("Valor incorreto. Digite um número maior que 0.")
-            except ValueError:
-                self.mensagem_erro("Valor incorreto. Digite um número fracionário válido.")
-    
-    def le_string(self, mensagem: str = "Digite algo"):
-        string = input(mensagem)
-        return string.strip()
-
-"""

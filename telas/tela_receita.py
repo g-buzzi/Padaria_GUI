@@ -2,7 +2,7 @@ from telas.tela_abstrata import Tela
 
 class TelaReceita(Tela):
     def __init__(self, controlador):
-        super().__init__(controlador)
+        super().__init__()
 
     def cadastra_receita(self) -> dict:
         dados = {}

@@ -1,8 +1,12 @@
+from excecoes.WindowClosed import WindowClosed
 from controladores.controlador_central import ControladorCentral
 
 from controladores.controlador_ingredientes import ControladorIngredientes
 
-ControladorIngredientes(None).abre_tela_inicial()
+try:
+    ControladorCentral().inicia()
+except WindowClosed:
+    quit()
 
 
 """

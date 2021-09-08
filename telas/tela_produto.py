@@ -2,7 +2,7 @@ from telas.tela_abstrata import Tela
 
 class TelaProduto(Tela):
     def __init__(self, controlador):
-        super().__init__(controlador)
+        super().__init__()
 
     def cadastra_produto(self):
         self.cabecalho("Cadastrar Produto")

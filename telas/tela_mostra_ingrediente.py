@@ -16,7 +16,7 @@ class TelaMostraIngrediente(Tela):
     def campos(self, dados_ingrediente = defaultdict(lambda: None), leitura = False):
 
         lb_codigo = self.label("Código: ")
-        in_codigo = self.entrada("codigo", dados_ingrediente["codigo"], leitura= leitura)
+        in_codigo = self.entrada("codigo", dados_ingrediente["codigo"], leitura= leitura )
 
         lb_nome = self.label("Nome: ")
         in_nome = self.entrada("nome", dados_ingrediente["nome"], leitura= leitura)
@@ -45,11 +45,11 @@ class TelaMostraIngrediente(Tela):
             layout.append(linha)
         layout.append([alterar, remover, voltar])
         self.window = self.janela(layout)
-        return self.window.read()
+        return self.read()
 
-    def cadastra(self):
+    def cadastra(self, dados_ingrediente = defaultdict(lambda: None)):
         titulo = self.titulo("Cadastra")
-        campos = self.campos()
+        campos = self.campos(dados_ingrediente)
         altera = self.botao("Cadastrar", "cadastra")
         voltar = self.botao("Voltar", "volta")
         layout = [[titulo]]
@@ -57,7 +57,7 @@ class TelaMostraIngrediente(Tela):
             layout.append(linha)
         layout.append([altera, voltar])
         self.window = self.janela(layout)
-        return self.window.read()
+        return self.read()
 
     def altera(self, dados_ingrediente = {}):
         titulo = self.titulo(dados_ingrediente["nome"])
@@ -69,4 +69,4 @@ class TelaMostraIngrediente(Tela):
             layout.append(linha)
         layout.append([altera, voltar])
         self.window = self.janela(layout)
-        return self.window.read()
+        return self.read()
