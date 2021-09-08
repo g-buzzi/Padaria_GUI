@@ -34,6 +34,7 @@ class ControladorCentral(Controlador):
         }
         while True:
             botao, dados = self.tela.inicia()
+            self.tela.close()
             switcher[botao]()
 
     @property
