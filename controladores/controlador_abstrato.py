@@ -49,8 +49,9 @@ class Controlador(ABC):
             raise FloatError(nome_campo)
 
     def formata_string(self, valor: str) -> str:
+        valor = valor.strip()
         self.checar_vazio(valor)
-        return valor.strip()
+        return valor
 
     def checar_vazio(self, valor: str):
         if valor is None or valor == "":

@@ -167,4 +167,4 @@ class Tela(ABC):
                               button_color=("#3A312C", "#FC9326"), 
                               pad = (2,5), size= (10,1))
         layout = [[texto], [botao]]
-        sg.Window("Erro", layout, margins=(0,0),element_justification= 'center', modal = True, use_custom_titlebar= True, return_keyboard_events = True).read(close=True)
+        sg.Window("Erro", layout, margins=(0,0), element_justification= 'center', modal = True, use_custom_titlebar= True, return_keyboard_events = True).read(close=True)
