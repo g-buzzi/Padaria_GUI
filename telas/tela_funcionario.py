@@ -4,7 +4,7 @@ from telas.tela_abstrata import Tela
 class TelaFuncionario(Tela):
 
     def __init__(self, controlador):
-        super().__init__(controlador)
+        super().__init__()
 
     def recebe_dados_funcionarios(self, mensagem: str = None):
         if mensagem:

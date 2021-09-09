@@ -12,7 +12,7 @@ from controladores.controlador_vendas import ControladorVendas
 class ControladorCentral(Controlador):
 
     def __init__(self):
-        super().__init__(TelaCentral(self))
+        super().__init__(TelaCentral())
         self.__controlador_ingredientes = ControladorIngredientes(self)
         self.__controlador_receitas = ControladorReceitas(self)
         self.__controlador_produtos = ControladorProdutos(self)
@@ -23,24 +23,19 @@ class ControladorCentral(Controlador):
 
 
     def abre_tela_inicial(self):
-        opcoes = {1: "Ingredientes", 2: "Receitas", 3: "Produtos", 4: "Estoque", 5: "Funcionários", 6: "Clientes", 7: "Vendas", 0: "Sair"}
         switcher = {
-            0: False, 1: self.controlador_ingredientes, 
-            2: self.controlador_receitas, 
-            3: self.controlador_produtos, 
-            4: self.controlador_estoque, 
-            5: self.controlador_funcionarios, 
-            6: self.controlador_clientes,
-            7: self.controlador_vendas
+            "sair": quit, "ingredientes": self.controlador_ingredientes.inicia, 
+            "receitas": self.controlador_receitas.inicia, 
+            "produtos": self.controlador_produtos.inicia, 
+            "estoque": self.controlador_estoque.inicia, 
+            "funcionarios": self.controlador_funcionarios.inicia, 
+            "clientes": self.controlador_clientes.inicia,
+            "vendas": self.controlador_vendas.inicia
         }
         while True:
-            opcao = self.tela.mostra_opcoes(opcoes, "-------- Tela Inicial --------")
-            controlador = switcher[opcao]
-
-            if controlador is False:
-                break
-            else:
-                controlador.inicia()
+            botao, dados = self.tela.inicia()
+            self.tela.close()
+            switcher[botao]()
 
     @property
     def controlador_ingredientes(self):

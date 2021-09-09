@@ -9,11 +9,11 @@ class DAO(ABC):
         self.__cache = {}
         try:
             self.__load()
-        except FileNotFoundError:
+        except (FileNotFoundError, EOFError):
             self.__dump()
     
     def __dump(self):
-        pickle.load(self.__cache, open(self.__datasource, "wb"))
+        pickle.dump(self.__cache, open(self.__datasource, "wb"))
 
     def __load(self):
         self.__cache = pickle.load(open(self.__datasource, "rb"))
@@ -40,4 +40,10 @@ class DAO(ABC):
     
     def get_all(self):
         return self.__cache
+
+    def get_objects(self):
+        return self.__cache.values()
+
+    def get_keys(self):
+        return self.__cache.keys()
 

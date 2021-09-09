@@ -27,5 +27,5 @@ class TelaListaIngrediente(Tela):
         layout = [[titulo], opcoes, [lista]]
         self.window = self.janela(layout = layout, background = "#FC9326")
         self.configura_lista("lista")
-        return self.window.read()
+        return self.read()
             
