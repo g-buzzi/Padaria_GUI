@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+
+from PySimpleGUI.PySimpleGUI import BUTTON_TYPE_READ_FORM, WIN_CLOSED
 from excecoes.WindowClosed import WindowClosed
 from tkinter.constants import CENTER, LEFT
 import PySimpleGUI as sg
@@ -47,8 +49,8 @@ class Tela(ABC):
         sg.theme_add_new("Padaria", tema)
         sg.theme("Padaria")
 
-    def janela(self, layout, titulo = "Padaria Elsecall", background = None, justificacao = LEFT):
-        janela = sg.Window(titulo, layout= layout, margins=(0,0), finalize= True, element_justification = justificacao, use_custom_titlebar= True, background_color= background)
+    def janela(self, layout, titulo = "Padaria Elsecall", background = None, justificacao = CENTER):
+        janela = sg.Window(titulo, layout= layout, margins=(0,0), resizable= True, finalize= True, element_justification = justificacao, background_color= background, use_custom_titlebar = True) 
         return janela
 
     def titulo(self, texto, font_size = 14):
@@ -116,7 +118,16 @@ class Tela(ABC):
         return opcoes
 
     def pesquisar(self, texto = "Pesquisa: "):
-        pesquisa = sg.popup_get_text(texto, title = "Pesquisa")
+        label = self.label(texto, tamanho=(30,1))
+        entrada = self.entrada("pesquisa", tamanho=(30,1))
+        bt_volta = self.botao("Voltar", "voltar", tamanho=(10,1), padding=(2,5))
+        bt_pesquisa = self.botao("Pesquisar", "pesquisar", tamanho=(10,1), padding=(2,5))
+        layout = [[label], [entrada], [bt_pesquisa, bt_volta]]
+        botao, pesquisa = sg.Window("Pesquisa", layout, size=(250, 125), margins=(0,0),element_justification= 'center', modal = True, use_custom_titlebar= True).read(close=True)
+        if botao == "pesquisar":
+            pesquisa = pesquisa["pesquisa"]
+        else:
+            pesquisa = None
         return pesquisa
 
     def lista(self, heading = [], valores = [], chave = "lista", auto_size = True):
@@ -143,7 +154,15 @@ class Tela(ABC):
         self.__window[chave_lista].bind('<Double-1>', "_clique_duplo")
 
     def mensagem(self, mensagem: str):
-        sg.popup(mensagem, title = "Mensagem")
+        texto = self.label(mensagem, tamanho=(50, None))
+        botao = self.botao("Ok", "ok",tamanho=(10,1), padding=(2,5))
+        layout = [[texto], [botao]]
+        sg.Window("Mensagem", layout, size=(250, 100), margins=(0,0),element_justification= 'center', modal = True, use_custom_titlebar= True, return_keyboard_events = True).read(close=True)
 
     def mensagem_erro(self, mensagem: str):
-        sg.popup_error(mensagem, title = "Error")
+        texto = self.label(mensagem)
+        botao = botao = sg.Button(button_text = "Ok", key = "ok", 
+                              button_color=("#3A312C", "#FC9326"), 
+                              pad = (2,5), size= (10,1))
+        layout = [[texto], [botao]]
+        sg.Window("Erro", layout, size=(250, 100), margins=(0,0),element_justification= 'center', modal = True, use_custom_titlebar= True, return_keyboard_events = True).read(close=True)

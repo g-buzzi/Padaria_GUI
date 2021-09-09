@@ -7,8 +7,3 @@ try:
     ControladorCentral().inicia()
 except WindowClosed:
     quit()
-
-
-"""
-ControladorCentral().inicia()
-"""

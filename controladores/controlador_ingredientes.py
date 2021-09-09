@@ -44,8 +44,9 @@ class ControladorIngredientes(Controlador):
     def pesquisar(self, valores = None):
         pesquisa = self.tela.pesquisar("Nome: ")
         try:
-            pesquisa = self.formata_string(pesquisa)
-            self.__pesquisa = pesquisa
+            if pesquisa is not None:
+                pesquisa = self.formata_string(pesquisa)
+                self.__pesquisa = pesquisa
         except InputError as e:
             self.tela.mensagem_erro(e.mensagem)
 

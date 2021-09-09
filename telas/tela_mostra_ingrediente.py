@@ -15,17 +15,17 @@ class TelaMostraIngrediente(Tela):
 
     def campos(self, dados_ingrediente = defaultdict(lambda: None), leitura = False):
 
-        lb_codigo = self.label("Código: ")
-        in_codigo = self.entrada("codigo", dados_ingrediente["codigo"], leitura= leitura )
+        lb_codigo = self.label("Código: ", tamanho=(17,1))
+        in_codigo = self.entrada("codigo", dados_ingrediente["codigo"], leitura= leitura, tamanho= (33, 1))
 
-        lb_nome = self.label("Nome: ")
-        in_nome = self.entrada("nome", dados_ingrediente["nome"], leitura= leitura)
+        lb_nome = self.label("Nome: ", tamanho=(17,1))
+        in_nome = self.entrada("nome", dados_ingrediente["nome"], leitura= leitura, tamanho= (33, 1))
 
-        lb_unidade = self.label("Unidade de Medida: ")
-        in_unidade = self.entrada("unidade_medida", dados_ingrediente["unidade_medida"], leitura= leitura)
+        lb_unidade = self.label("Unidade de Medida: ", tamanho=(17,1))
+        in_unidade = self.entrada("unidade_medida", dados_ingrediente["unidade_medida"], leitura= leitura, tamanho= (33, 1))
 
-        lb_preco = self.label("Preço Unitário: ")
-        in_preco = self.entrada("preco_unitario", dados_ingrediente["preco_unitario"], leitura = leitura)
+        lb_preco = self.label("Preço Unitário: ", tamanho=(17,1))
+        in_preco = self.entrada("preco_unitario", dados_ingrediente["preco_unitario"], leitura = leitura, tamanho= (33, 1))
 
         campos = [[lb_codigo, in_codigo],
                   [lb_nome, in_nome],
