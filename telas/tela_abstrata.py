@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-
+import textwrap
 from PySimpleGUI.PySimpleGUI import BUTTON_TYPE_READ_FORM, WIN_CLOSED
 from excecoes.WindowClosed import WindowClosed
 from tkinter.constants import CENTER, LEFT
@@ -154,12 +154,14 @@ class Tela(ABC):
         self.__window[chave_lista].bind('<Double-1>', "_clique_duplo")
 
     def mensagem(self, mensagem: str):
+        mensagem = textwrap.fill(mensagem, width = 50)
         texto = self.label(mensagem,  justification= "center", padding=(5,2))
         botao = self.botao("Ok", "ok",tamanho=(10,1), padding=(2,5))
         layout = [[texto], [botao]]
         sg.Window("Mensagem", layout, margins=(0,0),element_justification= 'center', modal = True, use_custom_titlebar= True, return_keyboard_events = True).read(close=True)
 
     def mensagem_erro(self, mensagem: str):
+        mensagem = textwrap.fill(mensagem, width = 50)
         texto = self.label(mensagem, justification="center", padding= (5, 2))
         botao = botao = sg.Button(button_text = "Ok", key = "ok", 
                               button_color=("#3A312C", "#FC9326"), 

@@ -48,7 +48,7 @@ class ControladorIngredientes(Controlador):
                 pesquisa = self.formata_string(pesquisa)
                 self.__pesquisa = pesquisa
         except InputError as e:
-            self.tela.mensagem_erro(e)
+            self.tela.mensagem_erro(e.mensagem)
 
 
 #============================================ Ingredientes individuais =============================
@@ -178,7 +178,7 @@ class ControladorIngredientes(Controlador):
             dados["preco_unitario"] = self.formata_float(dados["preco_unitario"], "Preço Unitário")
             return dados
         except InputError as e:
-            self.tela.mensagem_erro(e)
+            self.tela.mensagem_erro(e.mensagem)
             raise InputError()
 
 
