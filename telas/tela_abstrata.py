@@ -53,6 +53,10 @@ class Tela(ABC):
         janela = sg.Window(titulo, layout= layout, margins=(0,0), resizable= True, finalize= True, element_justification = justificacao, background_color= background, use_custom_titlebar = True) 
         return janela
 
+    def popup(self, layout, titulo="Mensagem", tamanho = (None, None), keyboard_events = True):
+        popup = sg.Window(titulo, layout, margins=(0,0), size = tamanho, element_justification= 'center', modal = True, use_custom_titlebar= True, return_keyboard_events = keyboard_events, finalize = True)
+        return popup
+
     def titulo(self, texto, font_size = 14):
         titulo = sg.Text(texto, background_color="#3A312C",
                         text_color="#FC9326", pad=(0,0), 
@@ -93,7 +97,7 @@ class Tela(ABC):
 
     def seletor(self, chave, valores = [], valor_selecionado = None, tamanho = (None, None), leitura = False):
         if leitura:
-            seletor = sg.Text(valor_selecionado, size= tamanho, key= chave, border_width= 0)
+            seletor = sg.Text(valor_selecionado, size= tamanho, key= chave, border_width= 0, pad=(0,0))
         else:
             seletor = sg.Combo(valores, valor_selecionado, key= chave, size = tamanho, disabled= leitura)
         return seletor
@@ -123,7 +127,7 @@ class Tela(ABC):
         bt_volta = self.botao("Voltar", "voltar", tamanho=(10,1), padding=(2,5))
         bt_pesquisa = self.botao("Pesquisar", "pesquisar", tamanho=(10,1), padding=(2,5))
         layout = [[label], [entrada], [bt_pesquisa, bt_volta]]
-        botao, pesquisa = sg.Window("Pesquisa", layout, size=(250, 125), margins=(0,0),element_justification= 'center', modal = True, use_custom_titlebar= True).read(close=True)
+        botao, pesquisa = self.popup(layout, "Pesquisa", tamanho= (250, 125), keyboard_events= False).read(close=True)
         if botao == "pesquisar":
             pesquisa = pesquisa["pesquisa"]
         else:
@@ -150,15 +154,17 @@ class Tela(ABC):
 
 #======================================= Funções Universais =============================================
 
-    def configura_lista(self, chave_lista = "lista"):
-        self.__window[chave_lista].bind('<Double-1>', "_clique_duplo")
+    def configura_lista(self, chave_lista = "lista", janela = None):
+        if janela is None:
+            janela = self.__window
+        janela[chave_lista].bind('<Double-1>', "_clique_duplo")
 
     def mensagem(self, mensagem: str):
         mensagem = textwrap.fill(mensagem, width = 50)
         texto = self.label(mensagem,  justification= "center", padding=(5,2))
         botao = self.botao("Ok", "ok",tamanho=(10,1), padding=(2,5))
         layout = [[texto], [botao]]
-        sg.Window("Mensagem", layout, margins=(0,0),element_justification= 'center', modal = True, use_custom_titlebar= True, return_keyboard_events = True).read(close=True)
+        self.popup(layout, "Mensagem").read(close=True)
 
     def mensagem_erro(self, mensagem: str):
         mensagem = textwrap.fill(mensagem, width = 50)
@@ -167,4 +173,4 @@ class Tela(ABC):
                               button_color=("#3A312C", "#FC9326"), 
                               pad = (2,5), size= (10,1))
         layout = [[texto], [botao]]
-        sg.Window("Erro", layout, margins=(0,0), element_justification= 'center', modal = True, use_custom_titlebar= True, return_keyboard_events = True).read(close=True)
+        self.popup(layout, "Erro").read(close = True)

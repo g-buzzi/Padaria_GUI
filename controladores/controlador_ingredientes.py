@@ -59,9 +59,9 @@ class ControladorIngredientes(Controlador):
         dados = None
         while True:
             if dados is None:
-                botao, dados = self.tela.cadastra()
+                botao, dados = self.tela.cadastra(unidades_medida= self.unidades_medida())
             else:
-                botao, dados = self.tela.cadastra(dados)
+                botao, dados = self.tela.cadastra(dados, self.unidades_medida())
             if switcher[botao] is not False:
                 try:
                     dados = self.tratar_dados(dados)
@@ -115,7 +115,7 @@ class ControladorIngredientes(Controlador):
         self.tela = TelaMostraIngrediente()
         dados = self.dados_ingrediente(ingrediente)
         while True:
-            botao, dados = self.tela.altera(dados)
+            botao, dados = self.tela.altera(dados, self.unidades_medida())
             if botao == "volta":
                 self.tela.close()
                 break
@@ -181,5 +181,23 @@ class ControladorIngredientes(Controlador):
             self.tela.mensagem_erro(e.mensagem)
             raise InputError()
 
+    def unidades_medida(self):
+        unidades = [ingrediente.unidade_medida for ingrediente in self.__dao.get_objects()]
+        unidades = set(unidades)
+        unidades = list(unidades)
+        return unidades
 
+#============================================ Contato externo =============================
+
+    def seleciona_ingrediente(self) -> Ingrediente:
+        self.listar()
+        self.tela = TelaListaIngrediente()
+        posicao = self.tela.seleciona_ingrediente(self.__lista)
+        if posicao is None:
+            return None
+        try:
+            ingrediente = self.__dao.get(self.__lista[posicao][0])
+            return ingrediente
+        except KeyError:
+            return None
 

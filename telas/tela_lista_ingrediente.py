@@ -28,4 +28,17 @@ class TelaListaIngrediente(Tela):
         self.window = self.janela(layout = layout, background = "#FC9326")
         self.configura_lista("lista")
         return self.read()
+
+    def seleciona_ingrediente(self, dados_ingredientes: list):
+        lista =  self.lista(["Código", "Nome", "Unidade de Medida", "Preço unitário"], dados_ingredientes, chave= "lista")
+        janela = self.popup([[lista]], "Selecionar ingrediente", keyboard_events= False)
+        self.configura_lista(janela= janela)
+        botao, values = janela.read(close = True)
+        if botao is None:
+            return None
+        else:
+            try:
+                return values["lista"][0]
+            except IndexError:
+                return None
             

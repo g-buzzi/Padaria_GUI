@@ -22,7 +22,7 @@ class IngredienteDAO(DAO):
             try:
                 return super().get(codigo)
             except KeyError:
-                pass
+                raise KeyError
                 
 
 
