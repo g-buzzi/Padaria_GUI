@@ -74,8 +74,8 @@ class Tela(ABC):
                               pad = padding, size= tamanho)
         return botao
 
-    def label(self, texto = "", tamanho = (None, None)):
-        label = sg.Text(texto, font="Arial 10 bold", size= tamanho, justification= LEFT)
+    def label(self, texto = "", tamanho = (None, None), justification = "left", padding = (None, None)):
+        label = sg.Text(texto, font="Arial 10 bold", size= tamanho, justification= justification, pad= padding)
         return label
 
     def entrada(self, chave, valor = "", leitura = False, tamanho = (None, None), expand_x = True):
@@ -154,15 +154,15 @@ class Tela(ABC):
         self.__window[chave_lista].bind('<Double-1>', "_clique_duplo")
 
     def mensagem(self, mensagem: str):
-        texto = self.label(mensagem, tamanho=(50, None))
+        texto = self.label(mensagem,  justification= "center", padding=(5,2))
         botao = self.botao("Ok", "ok",tamanho=(10,1), padding=(2,5))
         layout = [[texto], [botao]]
-        sg.Window("Mensagem", layout, size=(250, 100), margins=(0,0),element_justification= 'center', modal = True, use_custom_titlebar= True, return_keyboard_events = True).read(close=True)
+        sg.Window("Mensagem", layout, margins=(0,0),element_justification= 'center', modal = True, use_custom_titlebar= True, return_keyboard_events = True).read(close=True)
 
     def mensagem_erro(self, mensagem: str):
-        texto = self.label(mensagem)
+        texto = self.label(mensagem, justification="center", padding= (5, 2))
         botao = botao = sg.Button(button_text = "Ok", key = "ok", 
                               button_color=("#3A312C", "#FC9326"), 
                               pad = (2,5), size= (10,1))
         layout = [[texto], [botao]]
-        sg.Window("Erro", layout, size=(250, 100), margins=(0,0),element_justification= 'center', modal = True, use_custom_titlebar= True, return_keyboard_events = True).read(close=True)
+        sg.Window("Erro", layout, margins=(0,0),element_justification= 'center', modal = True, use_custom_titlebar= True, return_keyboard_events = True).read(close=True)

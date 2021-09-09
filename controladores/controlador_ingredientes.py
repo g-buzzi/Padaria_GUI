@@ -4,8 +4,8 @@ from telas.tela_mostra_ingrediente import TelaMostraIngrediente
 from telas.tela_lista_ingrediente import TelaListaIngrediente
 from controladores.controlador_abstrato import Controlador
 from DAOs.dao_ingrediente import IngredienteDAO
-from entidades import ingrediente
 from entidades.ingrediente import Ingrediente
+
 
 
 class ControladorIngredientes(Controlador):
@@ -48,7 +48,7 @@ class ControladorIngredientes(Controlador):
                 pesquisa = self.formata_string(pesquisa)
                 self.__pesquisa = pesquisa
         except InputError as e:
-            self.tela.mensagem_erro(e.mensagem)
+            self.tela.mensagem_erro(e)
 
 
 #============================================ Ingredientes individuais =============================
@@ -178,7 +178,7 @@ class ControladorIngredientes(Controlador):
             dados["preco_unitario"] = self.formata_float(dados["preco_unitario"], "Preço Unitário")
             return dados
         except InputError as e:
-            self.tela.mensagem_erro(e.mensagem)
+            self.tela.mensagem_erro(e)
             raise InputError()
 
 

@@ -1,9 +1,7 @@
+import textwrap
+
 class InputError(Exception):
     def __init__(self, mensagem = "Um erro ocorreu", *args: object) -> None:
-        self.__mensagem = mensagem
-        super().__init__(*args)
-
-    @property
-    def mensagem(self):
-        return self.__mensagem
+        mensagem = textwrap.fill(mensagem, width= 50)
+        super().__init__(mensagem, *args)
     
