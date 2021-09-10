@@ -1,15 +1,14 @@
-from typing import List
-
 from controladores.controlador_abstrato import Controlador
 from telas.tela_funcionario import TelaFuncionario
 from entidades.funcionario import Funcionario
+from DAOs.funcionario_dao import FuncionarioDao
 
 
 class ControladorFuncionarios(Controlador):
 
     def __init__(self, controlador_central):
         super().__init__(TelaFuncionario(self))
-        self.__funcionarios: List[Funcionario] = []
+        self.__dao = FuncionarioDao()
         self.__controlador_central = controlador_central
 
     def abre_tela_inicial(self):
@@ -48,21 +47,21 @@ class ControladorFuncionarios(Controlador):
                 break
             
     def verifica_se_ja_existe_funcionario_com_matricula(self, matricula):
-        for funcionario in self.__funcionarios:
+        for funcionario in self.__dao.get_all():
             if matricula == funcionario.matricula:
                 return funcionario                
         else:
             return None
         
     def verifica_se_ja_existe_funcionario_com_cpf(self, cpf):
-        for funcionario in self.__funcionarios:
+        for funcionario in self.__dao.get_all():
             if cpf == funcionario.cpf:
                 return funcionario                
         else:
             return None
         
     def salva_dados_funcionario(self, dados_funcionario):
-        self.__funcionarios.append(Funcionario(
+        self.__dao.add(Funcionario(
             dados_funcionario['matricula'],
             dados_funcionario['nome'],
             dados_funcionario['cpf'],
@@ -74,7 +73,7 @@ class ControladorFuncionarios(Controlador):
     def lista_funcionarios(self):
         self.tela.cabecalho('Lista Funcionários')
 
-        for funcionario in self.__funcionarios:
+        for funcionario in self.__dao.get_all():
             self.tela.mostra_funcionario({
                 'matricula': funcionario.matricula,
                 'nome': funcionario.nome,
@@ -91,7 +90,7 @@ class ControladorFuncionarios(Controlador):
 
             funcionario = self.verifica_se_ja_existe_funcionario_com_matricula(matricula)
             if isinstance(funcionario, Funcionario):
-                self.__funcionarios.remove(funcionario)
+                self.__dao.remove(funcionario.matricula)
                 self.tela.mensagem("Funcionário removido com sucesso") 
             else:
                 self.tela.mensagem_erro('Funcionário não encontrado!')
@@ -104,7 +103,7 @@ class ControladorFuncionarios(Controlador):
 
         matricula = self.tela.solicita_matricula_funcionario('Pesquisa Funcionário')
 
-        for funcionario in self.__funcionarios:
+        for funcionario in self.__dao.get_all():
             if funcionario.matricula == matricula:
                 self.tela.mostra_funcionario({
                     'matricula': funcionario.matricula,
@@ -142,12 +141,14 @@ class ControladorFuncionarios(Controlador):
                 if funcionario.matricula == dados_atualizados['matricula'] or resposta_matricula is None:
                     if funcionario.cpf == dados_atualizados['cpf'] or resposta_cpf is None:
 
-                        funcionario.matricula = dados_atualizados['matricula']
-                        funcionario.nome = dados_atualizados['nome']
-                        funcionario.cpf = dados_atualizados['cpf']
-                        funcionario.telefone = dados_atualizados['telefone']
-                        funcionario.email = dados_atualizados['email']
-                        funcionario.salario = dados_atualizados['salario']
+                        self.__dao.remove(funcionario.matricula)
+                        self.__dao.add(Funcionario(dados_atualizados['matricula'],
+                                                   dados_atualizados['nome'],
+                                                   dados_atualizados['cpf'],
+                                                   dados_atualizados['telefone'],
+                                                   dados_atualizados['email'],
+                                                   dados_atualizados['salario']
+                                                   ))
                         
                         self.tela.mensagem("Alterações realizadas com sucesso") 
                     
