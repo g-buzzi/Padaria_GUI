@@ -1,12 +1,13 @@
 from controladores.controlador_abstrato import Controlador
 from telas.tela_cliente import TelaCliente
 from entidades.cliente import Cliente
+from DAOs.cliente_dao import ClienteDao
 
 class ControladorClientes(Controlador):
 
     def __init__(self, controlador_central):
         super().__init__(TelaCliente(self))
-        self.__clientes: list[Cliente] = []
+        self.__dao = ClienteDao();
         self.__controlador_central = controlador_central
         
     def abre_tela_inicial(self):
@@ -46,14 +47,14 @@ class ControladorClientes(Controlador):
                 break
             
     def verifica_se_ja_existe_cliente_com_cpf(self, cpf):
-        for cliente in self.__clientes:
+        for cliente in self.__dao.get_all():
             if cpf == cliente.cpf:
                 return cliente                
         else:
             return None
         
     def salva_dados_cliente(self, dados_cliente):
-        self.__clientes.append(Cliente(
+        self.__dao.add(Cliente(
         dados_cliente['nome'],
         dados_cliente['cpf'],
         dados_cliente['telefone'],
@@ -64,7 +65,7 @@ class ControladorClientes(Controlador):
     def lista_clientes(self):
         self.tela.cabecalho('Lista Clientes')
 
-        for cliente in self.__clientes:
+        for cliente in self.__dao.get_all():
             self.tela.mostra_cliente({
                 'nome': cliente.nome,
                 'cpf': cliente.cpf,
@@ -81,7 +82,7 @@ class ControladorClientes(Controlador):
 
             cliente = self.verifica_se_ja_existe_cliente_com_cpf(cpf)
             if isinstance(cliente, Cliente):
-                self.__clientes.remove(cliente)
+                self.__dao.remove(cliente.cpf)
                 self.tela.mensagem("Cliente removido com sucesso") 
             else:
                 self.tela.mensagem_erro('Cliente não encontrado!')
@@ -94,7 +95,7 @@ class ControladorClientes(Controlador):
     
         cpf = self.tela.solicita_cpf_cliente('Pesquisa Cliente')
 
-        for cliente in self.__clientes:
+        for cliente in self.__dao.get_all():
             if cliente.cpf == cpf:
                 self.tela.mostra_cliente({
                     'nome': cliente.nome,
@@ -128,11 +129,14 @@ class ControladorClientes(Controlador):
                 
                 if cliente.cpf == dados_atualizados['cpf'] or resposta is None:
 
-                    cliente.nome = dados_atualizados['nome']
-                    cliente.cpf = dados_atualizados['cpf']
-                    cliente.telefone = dados_atualizados['telefone']
-                    cliente.email = dados_atualizados['email']
-                    cliente.endereco = dados_atualizados['endereco']
+                    self.__dao.remove(cliente.cpf)
+                    self.__dao.add(Cliente(
+                        dados_atualizados['nome'],
+                        dados_atualizados['cpf'],
+                        dados_atualizados['telefone'],
+                        dados_atualizados['email'],
+                        dados_atualizados['endereco']
+                    ))
                     
                     self.tela.mensagem("Alterações realizadas com sucesso") 
                     
