@@ -1,5 +1,6 @@
+from excecoes.not_found_exception import NotFoundException
 from PySimpleGUI.PySimpleGUI import No
-from excecoes.InputError import InputError
+from excecoes.input_error import InputError
 from telas.tela_mostra_ingrediente import TelaMostraIngrediente
 from telas.tela_lista_ingrediente import TelaListaIngrediente
 from controladores.controlador_abstrato import Controlador
@@ -16,10 +17,6 @@ class ControladorIngredientes(Controlador):
         self.__lista = []
         self.__pesquisa = False
 
-    @property
-    def ingredientes(self):
-        return self.__dao.get_objects()
-
     def inicia(self):
         self.abre_tela_inicial()
 
@@ -29,6 +26,7 @@ class ControladorIngredientes(Controlador):
         switcher = {"cadastrar": self.cadastrar, "pesquisar": self.pesquisar, "lista_clique_duplo": self.mostrar, "listar": self.listar}
         self.listar()
         while True:
+            self.tela.close()
             self.tela = TelaListaIngrediente()
             if self.__pesquisa is not False:
                 self.__lista = self.pesquisa_ingrediente_por_nome(self.__pesquisa)
@@ -140,12 +138,12 @@ class ControladorIngredientes(Controlador):
                 if dados["nome"].lower() == ing.nome.lower() and ing != ingrediente:
                     self.tela.mensagem_erro("Nome duplicado, alterações não serão realizadas")
                     return False
-        self.__dao.remove(ingrediente)
+        codigo_antigo = ingrediente.codigo
         ingrediente.codigo = dados["codigo"]
         ingrediente.nome = dados["nome"]
         ingrediente.unidade_medida = dados["unidade_medida"]
         ingrediente.preco_unitario = dados["preco_unitario"] 
-        self.__dao.add(ingrediente)
+        self.__dao.alter(ingrediente, codigo_antigo)
         return True
 
 #============================================ Lidar com os dados =============================
@@ -189,15 +187,18 @@ class ControladorIngredientes(Controlador):
 
 #============================================ Contato externo =============================
 
-    def seleciona_ingrediente(self) -> Ingrediente:
-        self.listar()
+    def seleciona_ingrediente(self) -> dict:
         self.tela = TelaListaIngrediente()
-        posicao = self.tela.seleciona_ingrediente(self.__lista)
+        lista = self.dados_ingredientes()
+        posicao = self.tela.seleciona_ingrediente(lista)
         if posicao is None:
             return None
         try:
-            ingrediente = self.__dao.get(self.__lista[posicao][0])
-            return ingrediente
-        except KeyError:
+            ingrediente = self.__dao.get(lista[posicao][0])
+            return self.dados_ingrediente(ingrediente)
+        except NotFoundException:
             return None
+
+    def seleciona_ingrediente_por_codigo(self, codigo: int):
+        return self.__dao.get(codigo)
 

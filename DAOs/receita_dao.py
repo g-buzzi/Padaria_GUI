@@ -1,0 +1,58 @@
+from DAOs.dao_abstrato import DAO
+from entidades.receita import Receita
+from excecoes.not_found_exception import NotFoundException
+
+class ReceitaDAO(DAO):
+    instancia = None
+
+    def __new__(cls):
+        if ReceitaDAO.instancia is None:
+            ReceitaDAO.instancia = super().__new__(cls)
+        return ReceitaDAO.instancia
+
+    def __init__(self) -> None:
+        super().__init__("receitas.pkl")
+
+    def add(self, receita: Receita):
+        if (receita is not None and isinstance(receita, Receita)):
+            super().add(receita.codigo, receita)
+
+    def remove(self, receita: Receita):
+        if isinstance(receita.codigo, int):
+            try:
+                super().remove(receita.codigo)
+            except KeyError:
+                raise NotFoundException("Receita")
+
+    def get(self, codigo: int):
+        if isinstance(codigo, int):
+            try:
+                return super().get(codigo)
+            except KeyError:
+                raise NotFoundException("Receita")
+
+
+    def alter(self, receita: Receita, codigo_antigo: int):
+        if isinstance(receita, Receita) and isinstance(codigo_antigo, int):
+            super().alter(codigo_antigo, receita.codigo, receita)
+            #colocar aqui chamado para o DAOProduto
+
+    def update_ingredientes(self, ingrediente, codigo_antigo: int):
+        for receita in self._cache.values():
+            for ingrediente_receita, quantidade in receita.ingredientes_receita.items():
+                if ingrediente_receita.codigo == codigo_antigo:
+                    receita.ingredientes_receita.pop(ingrediente_receita)
+                    receita.ingredientes_receita[ingrediente] = quantidade
+                    self._cache[receita.codigo] = receita
+                    break
+        self._dump()
+
+    def remove_ingrediente(self, codigo_ingrediente: int):
+        for receita in self._cache.values():
+            for ingrediente_receita in receita.ingredientes_receita.keys():
+                if ingrediente_receita.codigo == codigo_ingrediente:
+                    receita.ingredientes_receita.pop(ingrediente_receita)
+                    break
+        self._dump()
+
+

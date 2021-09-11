@@ -2,12 +2,12 @@ from entidades.ingrediente import Ingrediente
 
 
 class Receita:
-    def __init__(self, codigo: int, modo_preparo: str, tempo_preparo: float, rendimento: int):
+    def __init__(self, codigo: int, modo_preparo: str, tempo_preparo: float, rendimento: int, ingredientes_receita: dict):
         self.__codigo = codigo
         self.__modo_preparo = modo_preparo
         self.__tempo_preparo = tempo_preparo
         self.__rendimento = rendimento
-        self.__ingredientes_receita = {}
+        self.__ingredientes_receita = ingredientes_receita
         self.__produto_associado = False
 
     @property
@@ -46,6 +46,10 @@ class Receita:
     def ingredientes_receita(self) -> dict:
         return self.__ingredientes_receita
 
+    @ingredientes_receita.setter
+    def ingredientes_receita(self, ingredientes_receita):
+        self.__ingredientes_receita = ingredientes_receita
+
     @property
     def produto_associado(self):
         return self.__produto_associado
@@ -59,10 +63,10 @@ class Receita:
             self.__produto_associado.receita = False
         self.__produto_associado = False
 
-    def inclui_ingrediente(self, ingrediente: Ingrediente, quantidade: float):
+    def inclui_ingrediente(self, ingrediente: Ingrediente, quantidade: float): #Remover se não for usar
         self.__ingredientes_receita[ingrediente] = quantidade
 
-    def remove_ingrediente(self, ingrediente: Ingrediente):
+    def remove_ingrediente(self, ingrediente: Ingrediente): #Remover se não for usar
         self.__ingredientes_receita.pop(ingrediente)
 
     @property

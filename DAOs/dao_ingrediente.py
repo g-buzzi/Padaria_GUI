@@ -1,7 +1,15 @@
 from DAOs.dao_abstrato import DAO
 from entidades.ingrediente import Ingrediente
+from excecoes.not_found_exception import NotFoundException
+from DAOs.receita_dao import ReceitaDAO
 
 class IngredienteDAO(DAO):
+    instancia = None
+
+    def __new__(cls):
+        if IngredienteDAO.instancia is None:
+            IngredienteDAO.instancia = super().__new__(cls)
+        return IngredienteDAO.instancia
     
     def __init__(self) -> None:
         super().__init__(datasource="ingredientes.pkl")
@@ -14,15 +22,22 @@ class IngredienteDAO(DAO):
         if isinstance(ingrediente.codigo, int):
             try:
                 super().remove(ingrediente.codigo)
+                ReceitaDAO().remove_ingrediente(ingrediente.codigo)
             except KeyError:
-                pass
+                raise NotFoundException("Ingrediente")
 
     def get(self, codigo: int):
         if isinstance(codigo, int):
             try:
                 return super().get(codigo)
             except KeyError:
-                raise KeyError
+                raise NotFoundException("Ingrediente")
+
+    def alter(self, ingrediente: Ingrediente, codigo_antigo: int):
+        if isinstance(ingrediente, Ingrediente) and isinstance(codigo_antigo, int):
+            super().alter(codigo_antigo, ingrediente.codigo, ingrediente)
+            ReceitaDAO().update_ingredientes(ingrediente, codigo_antigo)
+
                 
 
 

@@ -3,13 +3,12 @@ from telas.tela_abstrata import Tela
 from collections import defaultdict
 
 class TelaMostraIngrediente(Tela):
-    
-    __instancia = None
+    instancia = None
 
     def __new__(cls):
-        if cls.__instancia is None:
-            cls.__instancia = super().__new__(cls)
-        return cls.__instancia
+        if TelaMostraIngrediente.instancia is None:
+            TelaMostraIngrediente.instancia = super().__new__(cls)
+        return TelaMostraIngrediente.instancia
 
     def __init__(self):
         super().__init__()

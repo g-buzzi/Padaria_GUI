@@ -22,4 +22,3 @@ class Ingrediente(Estocado):
     @preco_unitario.setter
     def preco_unitario(self, preco_unitario: float):
         self.__preco_unitario = preco_unitario
-

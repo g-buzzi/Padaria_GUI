@@ -4,6 +4,12 @@ from telas.tela_abstrata import Tela
 
 
 class TelaCentral(Tela):
+    instancia = None
+
+    def __new__(cls):
+        if TelaCentral.instancia is None:
+            TelaCentral.instancia = super().__new__(cls)
+        return TelaCentral.instancia
 
     def __init__(self):
         super().__init__()

@@ -1,14 +1,13 @@
 from abc import ABC, abstractmethod
 import textwrap
 from PySimpleGUI.PySimpleGUI import BUTTON_TYPE_READ_FORM, WIN_CLOSED
-from excecoes.WindowClosed import WindowClosed
-from tkinter.constants import CENTER, LEFT
+from excecoes.window_closed import WindowClosed
 import PySimpleGUI as sg
 
 class Tela(ABC):
+
     @abstractmethod
     def __init__(self):
-        self.__window = None
         self.definir_tema()
 
     @property
@@ -30,8 +29,13 @@ class Tela(ABC):
         return (event, values)
 
     def close(self):
-        if self.__window is not None:
-            self.__window.close()
+        try:
+            if self.__window is not None:
+                self.__window.close()
+                self.__window = None
+        except AttributeError:
+            self.__window = None
+
 
 #======================================= Utilidades =============================================
 
@@ -49,7 +53,7 @@ class Tela(ABC):
         sg.theme_add_new("Padaria", tema)
         sg.theme("Padaria")
 
-    def janela(self, layout, titulo = "Padaria Elsecall", background = None, justificacao = CENTER):
+    def janela(self, layout, titulo = "Padaria Elsecall", background = None, justificacao = "center"):
         janela = sg.Window(titulo, layout= layout, margins=(0,0), resizable= True, finalize= True, element_justification = justificacao, background_color= background, use_custom_titlebar = True) 
         return janela
 
@@ -66,26 +70,30 @@ class Tela(ABC):
         return titulo
 
     def botao(self, texto, chave, desativado = False, expand_x = False, expand_y = False, tamanho = (None, None), padding = None):
+        if tamanho != (None, None):
+            auto_size = False
+        else:
+            auto_size = True
         if desativado:
             botao = sg.Button(button_text = texto, key = chave, 
                               disabled=True, button_color=("#3A312C", "#FC9326"), 
                               disabled_button_color= ("#3A312C", "#3A312C"),
                               expand_x= expand_x, expand_y= expand_y,
-                              pad = padding, size= tamanho)
+                              pad = padding, size= tamanho, auto_size_button= auto_size)
         else:
             botao = sg.Button(button_text = texto, key = chave,
                               expand_x= expand_x, expand_y= expand_y,
-                              pad = padding, size= tamanho)
+                              pad = padding, size= tamanho, auto_size_button= auto_size)
         return botao
 
     def label(self, texto = "", tamanho = (None, None), justification = "left", padding = (None, None)):
         label = sg.Text(texto, font="Arial 10 bold", size= tamanho, justification= justification, pad= padding)
         return label
 
-    def entrada(self, chave, valor = "", leitura = False, tamanho = (None, None), expand_x = True):
+    def entrada(self, chave, valor = "", leitura = False, tamanho = (None, None), expand_x = False, padding = (None, None)):
         if tamanho != (None, None):
             expand_x = False
-        entrada = sg.InputText(default_text = valor, key= chave, size= tamanho,  readonly = leitura, disabled_readonly_background_color= "#FFEDB7", disabled_readonly_text_color= "#3A312C", border_width=0, expand_x = expand_x)
+        entrada = sg.InputText(default_text = valor, key= chave, size= tamanho, readonly = leitura, disabled_readonly_background_color= "#FFEDB7", disabled_readonly_text_color= "#3A312C", border_width=0, expand_x = expand_x, pad= padding)
         return entrada
 
     def textarea(self, chave, valor = "", leitura = False, tamanho = (55, 10)):
@@ -134,15 +142,16 @@ class Tela(ABC):
             pesquisa = None
         return pesquisa
 
-    def lista(self, heading = [], valores = [], chave = "lista", auto_size = True):
+    def lista(self, heading = [], valores = [], chave = "lista", auto_size = True, n_linhas = 10):
         if len(valores) == 0:
             auto_size = False
         tabela = sg.Table(valores, heading, key= chave,
                           expand_x = True, expand_y= True,
                           header_text_color= "#FC9326",
                           header_background_color= "#3A312C",
-                          pad=(0,0), justification= CENTER,
-                          auto_size_columns= auto_size)
+                          pad=(0,0), justification= "center",
+                          auto_size_columns= auto_size,
+                          num_rows= n_linhas)
         return tabela
 
     def menu(self, botoes = dict, tamanho_botao = (40,2), padding_botao = (5, 2.5)):
