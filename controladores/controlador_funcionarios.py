@@ -2,28 +2,53 @@ from controladores.controlador_abstrato import Controlador
 from telas.tela_funcionario import TelaFuncionario
 from entidades.funcionario import Funcionario
 from DAOs.funcionario_dao import FuncionarioDao
+from telas.tela_lista_funcionario import TelaListaFuncionario
 
 
 class ControladorFuncionarios(Controlador):
     instancia = None
 
     def __init__(self, controlador_central):
-        super().__init__(TelaFuncionario(self))
+        super().__init__(TelaListaFuncionario())
         self.__dao = FuncionarioDao()
         self.__controlador_central = controlador_central
+        self.__pesquisa = False
 
-    def abre_tela_inicial(self):
-        switcher = {0: False, 1: self.cadastra_funcionario, 2: self.altera_funcionario, 3: self.remove_funcionario,
-                    4: self.lista_funcionarios, 5: self.seleciona_funcionario_por_matricula}
+    def inicia(self):
+        self.abre_tela_inicial()
 
-        opcoes = {1: "Cadastrar", 2: "Alterar", 3: "Remover", 4: "Listar", 5: "Pesquisar", 0: "Voltar"}
+    def dados_funcionarios(self):
+        dados = []
+        for funcionario in self.__dao.get_objects():
+            dados.append([funcionario.matricula, funcionario.nome, funcionario.cpf,
+                          funcionario.telefone, funcionario.salario, funcionario.email])
+        return dados
+
+    # ============================================ Listar Funcionários =============================
+
+    def abre_tela_inicial(self, dados=None):
+        # switcher = {"cadastrar": self.cadastrar, "pesquisar": self.pesquisar, "lista_clique_duplo": self.mostrar,
+        #             "listar": self.listar}
+        # self.listar()
         while True:
-            opcao = self.tela.mostra_opcoes(opcoes, "--------- Funcionários ---------")
-            funcao_escolhida = switcher[opcao]
-            if funcao_escolhida:
-                funcao_escolhida()
-            else:
-                break
+            self.tela = TelaListaFuncionario()
+            self.__lista = self.dados_funcionarios()
+            botao, valores = self.tela.lista_funcionarios(self.__lista, self.__pesquisa)
+
+    ###############################################################################################
+    #
+    # def abre_tela_inicial(self):
+    #     switcher = {0: False, 1: self.cadastra_funcionario, 2: self.altera_funcionario, 3: self.remove_funcionario,
+    #                 4: self.lista_funcionarios, 5: self.seleciona_funcionario_por_matricula}
+    #
+    #     opcoes = {1: "Cadastrar", 2: "Alterar", 3: "Remover", 4: "Listar", 5: "Pesquisar", 0: "Voltar"}
+    #     while True:
+    #         opcao = self.tela.mostra_opcoes(opcoes, "--------- Funcionários ---------")
+    #         funcao_escolhida = switcher[opcao]
+    #         if funcao_escolhida:
+    #             funcao_escolhida()
+    #         else:
+    #             break
 
     def cadastra_funcionario(self):
         opcoes = {1: "Continuar cadastrando", 0: "Voltar"}
