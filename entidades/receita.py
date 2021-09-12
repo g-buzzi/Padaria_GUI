@@ -59,8 +59,6 @@ class Receita:
         self.__produto_associado = produto_associado
 
     def remove_produto_associado(self):
-        if self.__produto_associado:
-            self.__produto_associado.receita = False
         self.__produto_associado = False
 
     def inclui_ingrediente(self, ingrediente: Ingrediente, quantidade: float): #Remover se não for usar

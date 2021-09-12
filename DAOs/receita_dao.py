@@ -1,3 +1,4 @@
+from DAOs.dao_produto import ProdutoDAO
 from DAOs.dao_abstrato import DAO
 from entidades.receita import Receita
 from excecoes.not_found_exception import NotFoundException
@@ -35,7 +36,8 @@ class ReceitaDAO(DAO):
     def alter(self, receita: Receita, codigo_antigo: int):
         if isinstance(receita, Receita) and isinstance(codigo_antigo, int):
             super().alter(codigo_antigo, receita.codigo, receita)
-            #colocar aqui chamado para o DAOProduto
+            if receita.produto_associado is not False:
+                ProdutoDAO().update_receita(receita.produto_associado, receita)
 
     def update_ingredientes(self, ingrediente, codigo_antigo: int):
         for receita in self._cache.values():
@@ -44,6 +46,8 @@ class ReceitaDAO(DAO):
                     receita.ingredientes_receita.pop(ingrediente_receita)
                     receita.ingredientes_receita[ingrediente] = quantidade
                     self._cache[receita.codigo] = receita
+                    if receita.produto_associado is not False:
+                        ProdutoDAO().update_receita(receita.produto_associado, receita)
                     break
         self._dump()
 
@@ -52,7 +56,7 @@ class ReceitaDAO(DAO):
             for ingrediente_receita in receita.ingredientes_receita.keys():
                 if ingrediente_receita.codigo == codigo_ingrediente:
                     receita.ingredientes_receita.pop(ingrediente_receita)
+                    if receita.produto_associado is not False:
+                        ProdutoDAO().update_receita(receita.produto_associado, receita)
                     break
         self._dump()
-
-

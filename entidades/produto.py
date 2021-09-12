@@ -37,6 +37,4 @@ class Produto(Estocado):
         return self.__receita.custo_preparo/self.__receita.rendimento
 
     def remove_receita(self):
-        if self.__receita:
-            self.__receita.produto_associado = False
         self.__receita = False

@@ -1,5 +1,8 @@
+from entidades.produto import Produto
 from excecoes.input_error import InputError
+from excecoes.duplicated_exception import DuplicatedException
 from entidades.ingrediente import Ingrediente
+from entidades.produto import Produto
 from controladores.controlador_abstrato import Controlador
 from entidades.receita import Receita
 from telas.tela_mostra_receita import TelaMostraReceita
@@ -117,6 +120,8 @@ class ControladorReceitas(Controlador):
 
     def remove(self, receita: Receita):
         self.__dao.remove(receita)
+        if receita.produto_associado is not False:
+            self.__controlador_central.controlador_produtos.remover_receita_associada(receita.produto_associado)
 
     def alteracao(self, receita: Receita):
         switcher = {"adicionar_ingrediente": self.adiciona_ingrediente_receita, "remover_ingrediente": self.remove_ingrediente_receita}
@@ -147,7 +152,7 @@ class ControladorReceitas(Controlador):
             self.tela.mensagem_erro(e.mensagem)
             return False
         if receita.codigo != dados["codigo"]:
-            if dados["codigo"] in self.__receitas.keys():
+            if dados["codigo"] in self.__dao.get_keys():
                 self.tela.mensagem_erro("Código já em uso")
                 return False
         codigo_antigo = receita.codigo
@@ -290,4 +295,17 @@ class ControladorReceitas(Controlador):
         try:
             return self.__dao.get(codigo)
         except KeyError:
-            return None
+            raise NotFoundException()
+
+    def associar_produto_receita(self, receita: Receita, produto: Produto):
+        receita = self.__dao.get(receita.codigo)
+        if receita.produto_associado is not False:
+            raise DuplicatedException("Receita", "Receita já está associada a um produto")
+        else:
+            receita.produto_associado = produto
+            self.__dao.add(receita)
+    
+    def remover_produto_associado(self, receita: Receita):
+        receita.produto_associado = False
+        self.__dao.alter(receita, receita.codigo)
+

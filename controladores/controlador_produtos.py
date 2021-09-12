@@ -1,197 +1,185 @@
-from telas.tela_produto import TelaProduto
+from excecoes.duplicated_exception import DuplicatedException
+from excecoes.not_found_exception import NotFoundException
+from telas.tela_lista_produto import TelaListaProduto
+from telas.tela_mostra_produto import TelaMostraProduto
 from controladores.controlador_abstrato import Controlador
+from collections import defaultdict
 from entidades.produto import Produto
+from DAOs.dao_produto import ProdutoDAO
+from excecoes.input_error import InputError
 
 class ControladorProdutos(Controlador):
     def __init__(self, controlador_central: Controlador):
-        super().__init__(TelaProduto(self))
-        self.__produtos = {}
+        super().__init__(TelaListaProduto())
+        self.__dao = ProdutoDAO()
         self.__controlador_central = controlador_central
+        self.__pesquisa = False
 
-    @property
-    def produtos(self):
-        return self.__produtos
+#============================================ Listar Produtos =============================
 
     def abre_tela_inicial(self):
-        switcher = {0: False, 1: self.cadastra_produto, 2: self.altera_produto, 3: self.remove_produto, 4: self.lista_produtos, 5: self.pesquisa_produto_por_nome}
-        opcoes = {1: "Cadastrar", 2: "Alterar", 3: "Remover", 4: "Listar", 5: "Pesquisar", 0: "Voltar"}
+        switcher = {"cadastrar": self.cadastrar, "pesquisar": self.pesquisar, "lista_clique_duplo": self.mostrar, "listar": self.listar}
+        self.listar()
         while True:
-            opcao = self.tela.mostra_opcoes(opcoes, "--------- Produtos ---------")
-            funcao_escolhida = switcher[opcao]
-            if funcao_escolhida:
-                funcao_escolhida()
+            self.tela.close()
+            self.tela = TelaListaProduto()
+            if self.__pesquisa is not False:
+                self.__lista = self.pesquisa_produto_por_nome(self.__pesquisa)
             else:
+                self.__lista = self.dados_produtos()
+            botao, valores = self.tela.lista_produtos(self.__lista, self.__pesquisa)
+            if botao == "voltar":
+                self.tela.close()
                 break
+            switcher[botao](valores)
+            self.tela.close()
 
-    def cadastra_produto(self):
-        opcoes = {1: "Continuar cadastrando", 0: "Voltar"}
+    def pesquisar(self, valores = None):
+        pesquisa = self.tela.pesquisar("Nome: ")
+        try:
+            if pesquisa is not None:
+                pesquisa = self.formata_string(pesquisa)
+                self.__pesquisa = pesquisa
+        except InputError as e:
+            self.tela.mensagem_erro(e.mensagem)
+
+#============================================ Produtos individuais =============================
+
+    def cadastrar(self, dados = None):
+        dados_produto = defaultdict(lambda: None)
+        self.tela = TelaMostraProduto()
         while True:
-            dados = self.tela.cadastra_produto()
-            if dados["codigo"] not in self.__produtos.keys():
-                receita = self.__controlador_central.controlador_receitas.seleciona_receita_por_codigo(dados["codigo_receita"])
-                for produto in self.__produtos.values():
-                    if dados["nome"].lower() == produto.nome.lower():
+            self.tela.close()
+            botao, dados_produto = self.tela.cadastra(dados_produto)
+            if botao == "volta":
+                break
+            elif botao == "seleciona_receita":
+                dados_receita = self.__controlador_central.controlador_receitas.seleciona_receita()
+                if dados_receita is not None:
+                    dados_produto["codigo_receita"] = dados_receita["codigo"]
+            else:
+                try:
+                    dados_produto = self.tratar_dados(dados_produto)
+                except InputError as e:
+                    self.tela.mensagem_erro(e.mensagem)
+                    continue
+                try:
+                    self.__dao.get(dados_produto["codigo"])
+                except (NotFoundException, KeyError):
+                    pass
+                else:
+                    self.tela.mensagem_erro("O código já está em uso!")
+                    continue
+                if dados_produto["codigo_receita"] is not False:
+                    try:
+                        receita = self.__controlador_central.controlador_receitas.seleciona_receita_por_codigo(dados_produto["codigo_receita"])
+                    except NotFoundException as e:
+                        self.tela.mensagem_erro(str(e))
+                else:
+                    receita = False
+                for produto in self.__dao.get_objects():
+                    if dados_produto["nome"].lower() == produto.nome.lower():
                         self.tela.mensagem_erro("Nome duplicado")
                         break
                 else:
-                    if receita is False:
-                        self.tela.mensagem_erro("Não exite receita com esse código")
-                        opcoes_receita = {1: "Cadastrar sem receita", 0: "Cancelar cadastro"}
-                        opcao = self.tela.mostra_opcoes(opcoes_receita)
-                        if opcao == 0:
-                            receita = None
-                    if receita and receita.produto_associado is not False:
-                        self.tela.mensagem_erro("Receita já associada a um produto")
-                    elif receita is not None:
-                        produto = Produto(dados["codigo"], dados["nome"], dados["preco_venda"], dados["descricao"], receita)
-                        self.__produtos[dados["codigo"]] = produto
-                        if receita:
-                            receita.produto_associado = produto
-                        self.tela.mensagem("Produto cadastrado com sucesso")
-            else:
-                self.tela.mensagem_erro("Código já em uso")
-            opcao = self.tela.mostra_opcoes(opcoes)
-            if opcao == 0:
-                break
-
-
-    def altera_produto(self):
-        opcoes_alteracao = {1: "Alteração completa", 2: "Alterar código", 3: "Alterar nome", 4: "Alterar preço de venda", 5: "Alterar descricao", 6: "Alterar receita", 7: "Remover receita", 0:"Finalizar alteração"}
-        funcoes_alteracao = {1: self.alteracao_completa, 2: self.altera_codigo, 3: self.altera_nome, 4: self.altera_preco_venda, 5: self.altera_descricao, 6: self.altera_receita, 7: self.remove_receita, 0: False}
-        opcoes = {1: "Alterar outro produto", 0: "Voltar"}
-        while True:
-            codigo = self.tela.altera_produto()
-            try:
-                produto = self.__produtos[codigo]
-            except KeyError:
-                self.tela.mensagem_erro("Nenhuma produto com este código existe")
-                continue
-            while True:
-                self.mostra_produto(produto)
-                opcao = self.tela.mostra_opcoes(opcoes_alteracao, "---- Opções de Alteração ----")
-                funcao = funcoes_alteracao[opcao]
-                if funcao is False:
+                    produto = Produto(dados_produto["codigo"], dados_produto["nome"], dados_produto["preco_venda"], dados_produto["descricao"], receita)
+                    if receita is not False:
+                        try:
+                            self.__controlador_central.controlador_receitas.associar_produto_receita(receita, produto)
+                        except DuplicatedException as e:
+                            self.tela.mensagem_erro(str(e))
+                            continue
+                    self.__dao.add(produto)
+                    self.tela.mensagem("Produto cadastrado com sucesso")
+                    self.tela.close()
                     break
-                funcao(produto)
-            opcao = self.tela.mostra_opcoes(opcoes)
-            if opcao == 0:
-                break
 
-    def alteracao_completa(self, produto: Produto):
-        dados_antigos = self.dados_produto(produto)
-        dados = self.tela.alteracao_completa(dados_antigos)
+    def mostrar(self, dados):
+        try:
+            selecionado = dados["lista"][0]
+        except IndexError:
+            return
+        selecionado = self.__lista[selecionado][0]
+        produto = self.__dao.get(selecionado)
+        switcher = {"volta": False, "altera": self.alteracao, "remove": self.remove}
+        while True:
+            self.tela = TelaMostraProduto()
+            botao, dados = self.tela.mostra(self.dados_produto(produto))
+            self.tela.close()
+            if switcher[botao] is False:
+                break
+            else:
+                switcher[botao](produto)
+                if botao == "remove":
+                    break
+
+
+    def alteracao(self, produto: Produto):
+        self.tela = TelaMostraProduto()
+        dados = self.dados_produto(produto)
+        while True:
+            botao, dados = self.tela.altera(dados)
+            if botao == "volta":
+                self.tela.close()
+                break
+            else:
+                if self.altera(produto, dados):
+                    self.tela.mensagem("Alterações realizadas com sucesso")
+                    self.tela.close()
+                    break
+            self.tela.close()
+
+    def altera(self, produto: Produto, dados):
+        try:
+            dados = self.tratar_dados(dados)
+        except InputError as e:
+            self.tela.mensagem_erro(e.mensagem)
+            return False
         if dados["codigo"] != produto.codigo:
-            if dados["codigo"] in self.__produtos.keys():
+            if dados["codigo"] in self.__dao.get_keys():
                 self.tela.mensagem_erro("Código já em utilização")
                 return
         if dados["nome"].lower() != produto.nome.lower():
-            for prod in self.__produtos.values():
-                if dados["nome"].lower() == prod.nome.lower() and prod != produto:
+            for prod in self.__dao.get_objects():
+                if dados["nome"].lower() == prod.nome.lower() and produto.codigo != prod.codigo:
                     self.tela.mensagem_erro("Nome já em utilização")
                     return
-        receita = self.__controlador_central.controlador_receitas.seleciona_receita_por_codigo(dados["codigo_receita"])
-        if receita is False:
-            self.tela.mensagem_erro("Não exite receita com esse código")
-            opcoes_receita = {1: "Cadastrar sem receita", 0: "Cancelar cadastro"}
-            opcao = self.tela.mostra_opcoes(opcoes_receita)
-            if opcao == 0:
-                receita = None
-        if receita and receita.produto_associado is not False:
+        if dados["codigo_receita"] is False:
+            receita = False
+        else:
+            try:
+                receita = self.__controlador_central.controlador_receitas.seleciona_receita_por_codigo(dados["codigo_receita"])
+            except NotFoundException as e:
+                self.tela.mensagem_erro(str(e))
+                return False
+        if receita is not False and receita.produto_associado is not False and (produto.receita is False or receita.codigo != produto.receita.codigo):
             self.tela.mensagem_erro("Receita já associada a um produto")
-            return
-        elif receita is not None:
-            if receita.produto_associado is not False:
-                self.tela.mensagem_erro("A receita já está associada a um produto")
-                return
-        self.__produtos.pop(produto.codigo)
+            return False
+        codigo_antigo = produto.codigo
         produto.codigo = dados["codigo"]
-        self.__produtos[produto.codigo] = produto
         produto.nome = dados["nome"]
         produto.preco_venda = dados["preco_venda"]
         produto.descricao = dados["descricao"]
-        produto.remove_receita()
+        if produto.receita is not False:
+            self.__controlador_central.controlador_receitas.remover_produto_associado(produto.receita)
         produto.receita = receita
-        if receita:
-            receita.produto_associado = produto
-
-    def altera_codigo(self, produto: Produto):
-        novo_codigo = self.tela.altera_codigo(produto.codigo)
-        if novo_codigo != produto.codigo:
-            if novo_codigo in self.__produtos.keys():
-                self.tela.mensagem_erro("Código já em uso")
-                return
-        self.__produtos.pop(produto.codigo)
-        produto.codigo = novo_codigo
-        self.__produtos[produto.codigo] = produto
-
-    def altera_nome(self, produto: Produto):
-        novo_nome = self.tela.altera_nome(produto.nome)
-        if novo_nome.lower() != produto.nome.lower():
-            for prod in self.__produtos.values():
-                if novo_nome.lower() == prod.nome.lower() and prod != produto:
-                    self.tela.mensagem_erro("Nome duplicado, tente outro nome")
-                    return
-        produto.nome = novo_nome
-
-    def altera_preco_venda(self, produto: Produto):
-        novo_preco = self.tela.altera_preco_venda(produto.preco_venda)
-        produto.preco_venda = novo_preco
-
-    def altera_descricao(self, produto: Produto):
-        nova_descricao = self.tela.altera_descricao(produto.descricao)
-        produto.descricao = nova_descricao
-                
-    def altera_receita(self, produto: Produto):
-        if produto.receita:
-            receita_codigo = produto.receita.codigo
-        else:
-            receita_codigo = "--"
-        novo_codigo_receita = self.tela.altera_receita(receita_codigo)
-        receita = self.__controlador_central.controlador_receitas.seleciona_receita_por_codigo(novo_codigo_receita)
-        if receita is False:
-            self.tela.mensagem_erro("Não existe receita com este código")
-            return
-        if receita.produto_associado is not False:
-            self.tela.mensagem_erro("Receita já associada a um produto")
-            return
-        produto.remove_receita()
-        produto.receita = receita
-        self.tela.mensagem("Receita alterada com sucesso")
-            
-    def remove_receita(self, produto: Produto):
-        if produto.receita:
-            produto.remove_receita()
-            self.tela.mensagem("Remoção realizada com sucesso")
-        else:
-            self.tela.mensagem_erro("Produto não possui receita associada")
-
-    def remove_produto(self):
-        opcoes = {1: "Continuar excluindo", 0: "Voltar"}
-        opcoes_remocao = {1: "Confirmar exclusão", 0: "Cancelar"}
-        while True:
-            codigo = self.tela.remove_produto()
-            try:
-                produto = self.__produtos[codigo]
-                if produto.receita is not False:
-                    self.tela.mensagem("Este produto está associado a uma receita")
-                opcao = self.tela.mostra_opcoes(opcoes_remocao, "Confirmar exclusão")
-                if opcao == 1:
-                    self.__produtos.pop(codigo)
-                    produto.remove_receita()
-                    self.tela.mensagem("Produto excluido com sucesso")
-                else:
-                    self.tela.mensagem("Exclusão Cancelada")
-            except KeyError:
-                self.tela.mensagem_erro("Não existe produto com este código")
-            opcao = self.tela.mostra_opcoes(opcoes)
-            if opcao == 0:
-                break
+        if receita is not False:
+            self.__controlador_central.controlador_receitas.associar_produto_receita(receita, produto)
+        self.__dao.alter(produto, codigo_antigo)
+        return True
 
 
-    def lista_produtos(self):
-        self.tela.cabecalho("Lista de Produtos")
-        for produto in self.__produtos.values():
-            self.mostra_produto(produto)
+    def remove(self, produto: Produto):
+        self.__dao.remove(produto)
+        if produto.receita is not False:
+            self.__controlador_central.controlador_receitas.remover_produto_associado(produto.receita)
+
+
+ #============================================ Lidar com os dados =============================
+
+ 
+    def listar(self, dados = None):
+        self.__pesquisa = False
 
     def dados_produto(self, produto: Produto):
         dados = {}
@@ -204,32 +192,54 @@ class ControladorProdutos(Controlador):
             dados["custo_unitario"] = produto.custo_unitario
         else:
             dados["codigo_receita"] = "--"
-            dados["custo_unitario"] = 0
-        
+            dados["custo_unitario"] = "--"
         return dados
 
+    def dados_produtos(self):
+        dados = []
+        for produto in self.__dao.get_objects():
+            dados_produto = []
+            dados_produto.append(produto.codigo)
+            dados_produto.append(produto.nome)
+            if produto.receita:
+                dados_produto.append(produto.custo_unitario)
+            else:
+                dados_produto.append("--")
+            dados_produto.append(produto.preco_venda)
+            dados.append(dados_produto)
+        return dados
 
-    def mostra_produto(self, produto: Produto):
-        dados = self.dados_produto(produto)
-        self.tela.mostra_produto(dados)
+    def tratar_dados(self, dados: dict):
+        dados["codigo"] = self.formata_int(dados["codigo"], "Código do produto")
+        dados["nome"] = self.formata_string(dados["nome"])
+        dados["preco_venda"] = self.formata_float(dados["preco_venda"], "Preço de Venda")
+        dados["descricao"] = self.formata_string(dados["descricao"])
+        if dados["codigo_receita"] == "":
+            dados["codigo_receita"] = False
+        else:
+            dados["codigo_receita"] = self.formata_int(dados["codigo_receita"], "Código da receita")
+        return dados
 
-    def pesquisa_produto_por_nome(self):
-        opcoes = {1: "Continuar pesquisa", 0: "Voltar"}
-        while True:
-            pesquisa = self.tela.pesquisa_produto_por_nome()
-            resultados = False
-            for produto in self.__produtos.values():
-                if pesquisa in produto.nome.lower():
-                    resultados = True
-                    self.mostra_produto(produto)
-            if not resultados:
-                self.tela.mensagem("Nenhum produto com esse nome foi encontrado") 
-            opcao = self.tela.mostra_opcoes(opcoes)
-            if opcao == 0:
-                break
+    def pesquisa_produto_por_nome(self, pesquisa: str):
+        dados = []
+        for produto in self.__dao.get_objects():
+            if pesquisa in produto.nome.lower():
+                dados_produto = []
+                dados_produto.append(produto.codigo)
+                dados_produto.append(produto.nome)
+                dados_produto.append(produto.preco_venda)
+                if produto.receita:
+                    dados_produto.append(produto.custo_unitario)
+                else:
+                    dados_produto.append("--")
+                dados.append(dados_produto)
+        return dados
+
+#============================================ Contato externo =============================
             
     def seleciona_produto_por_codigo(self, codigo: int):
-        try:
-            return self.__produtos[codigo]
-        except KeyError:
-            return False
+        return self.__dao.get(codigo)
+
+    def remover_receita_associada(self, produto: Produto):
+        produto.remove_receita()
+        self.__dao.add(produto)
