@@ -6,44 +6,53 @@ class DAO(ABC):
     def __init__(self, datasource="") -> None:
         super().__init__()
         self.__datasource = datasource
-        self.__cache = {}
+        self._cache = {}
         try:
-            self.__load()
+            self._load()
         except (FileNotFoundError, EOFError):
-            self.__dump()
+            self._dump()
     
-    def __dump(self):
-        pickle.dump(self.__cache, open(self.__datasource, "wb"))
+    def _dump(self):
+        pickle.dump(self._cache, open(self.__datasource, "wb"))
 
-    def __load(self):
-        self.__cache = pickle.load(open(self.__datasource, "rb"))
+    def _load(self):
+        self._cache = pickle.load(open(self.__datasource, "rb"))
 
     @abstractmethod
     def get(self, key):
         try:
-            return self.__cache[key]
+            return self._cache[key]
         except KeyError:
             raise KeyError
 
     @abstractmethod
     def add(self, key, obj):
-        self.__cache[key] = obj
-        self.__dump()
+        self._cache[key] = obj
+        self._dump()
 
     @abstractmethod
     def remove(self, key):
         try:
-            self.__cache.pop(key)
-            self.__dump()
+            self._cache.pop(key)
+            self._dump()
+        except KeyError:
+            raise KeyError
+
+#    @abstractmethod
+    def alter(self, old_key, new_key, obj):
+        try:
+            self._cache.pop(old_key)
+            self._cache[new_key] = obj
+            self._dump()
         except KeyError:
             raise KeyError
     
     def get_all(self):
-        return self.__cache
+        return self._cache
 
     def get_objects(self):
-        return self.__cache.values()
+        return self._cache.values()
 
     def get_keys(self):
-        return self.__cache.keys()
+        return self._cache.keys()
 

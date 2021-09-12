@@ -1,14 +1,13 @@
 from abc import ABC, abstractmethod
-from subprocess import check_call
-from excecoes.EmptyField import EmptyFieldError
-from excecoes.FloatError import FloatError
-from excecoes.IntError import IntError
+from excecoes.empty_field import EmptyFieldError
+from excecoes.float_error import FloatError
+from excecoes.int_error import IntError
 from telas.tela_abstrata import Tela
 
 
 class Controlador(ABC):
     @abstractmethod
-    def __init__(self, tela):
+    def __init__(self, tela: Tela):
         self.__tela = tela
 
     @abstractmethod

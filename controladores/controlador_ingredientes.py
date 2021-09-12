@@ -1,5 +1,6 @@
+from excecoes.not_found_exception import NotFoundException
 from PySimpleGUI.PySimpleGUI import No
-from excecoes.InputError import InputError
+from excecoes.input_error import InputError
 from telas.tela_mostra_ingrediente import TelaMostraIngrediente
 from telas.tela_lista_ingrediente import TelaListaIngrediente
 from controladores.controlador_abstrato import Controlador
@@ -16,10 +17,6 @@ class ControladorIngredientes(Controlador):
         self.__lista = []
         self.__pesquisa = False
 
-    @property
-    def ingredientes(self):
-        return self.__dao.get_objects()
-
     def inicia(self):
         self.abre_tela_inicial()
 
@@ -29,6 +26,7 @@ class ControladorIngredientes(Controlador):
         switcher = {"cadastrar": self.cadastrar, "pesquisar": self.pesquisar, "lista_clique_duplo": self.mostrar, "listar": self.listar}
         self.listar()
         while True:
+            self.tela.close()
             self.tela = TelaListaIngrediente()
             if self.__pesquisa is not False:
                 self.__lista = self.pesquisa_ingrediente_por_nome(self.__pesquisa)
@@ -59,9 +57,9 @@ class ControladorIngredientes(Controlador):
         dados = None
         while True:
             if dados is None:
-                botao, dados = self.tela.cadastra()
+                botao, dados = self.tela.cadastra(unidades_medida= self.unidades_medida())
             else:
-                botao, dados = self.tela.cadastra(dados)
+                botao, dados = self.tela.cadastra(dados, self.unidades_medida())
             if switcher[botao] is not False:
                 try:
                     dados = self.tratar_dados(dados)
@@ -115,7 +113,7 @@ class ControladorIngredientes(Controlador):
         self.tela = TelaMostraIngrediente()
         dados = self.dados_ingrediente(ingrediente)
         while True:
-            botao, dados = self.tela.altera(dados)
+            botao, dados = self.tela.altera(dados, self.unidades_medida())
             if botao == "volta":
                 self.tela.close()
                 break
@@ -140,12 +138,12 @@ class ControladorIngredientes(Controlador):
                 if dados["nome"].lower() == ing.nome.lower() and ing != ingrediente:
                     self.tela.mensagem_erro("Nome duplicado, alterações não serão realizadas")
                     return False
-        self.__dao.remove(ingrediente)
+        codigo_antigo = ingrediente.codigo
         ingrediente.codigo = dados["codigo"]
         ingrediente.nome = dados["nome"]
         ingrediente.unidade_medida = dados["unidade_medida"]
         ingrediente.preco_unitario = dados["preco_unitario"] 
-        self.__dao.add(ingrediente)
+        self.__dao.alter(ingrediente, codigo_antigo)
         return True
 
 #============================================ Lidar com os dados =============================
@@ -181,5 +179,26 @@ class ControladorIngredientes(Controlador):
             self.tela.mensagem_erro(e.mensagem)
             raise InputError()
 
+    def unidades_medida(self):
+        unidades = [ingrediente.unidade_medida for ingrediente in self.__dao.get_objects()]
+        unidades = set(unidades)
+        unidades = list(unidades)
+        return unidades
 
+#============================================ Contato externo =============================
+
+    def seleciona_ingrediente(self) -> dict:
+        self.tela = TelaListaIngrediente()
+        lista = self.dados_ingredientes()
+        posicao = self.tela.seleciona_ingrediente(lista)
+        if posicao is None:
+            return None
+        try:
+            ingrediente = self.__dao.get(lista[posicao][0])
+            return self.dados_ingrediente(ingrediente)
+        except NotFoundException:
+            return None
+
+    def seleciona_ingrediente_por_codigo(self, codigo: int):
+        return self.__dao.get(codigo)
 

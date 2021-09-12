@@ -1,4 +1,4 @@
-from excecoes.WindowClosed import WindowClosed
+from excecoes.window_closed import WindowClosed
 from controladores.controlador_central import ControladorCentral
 
 try:

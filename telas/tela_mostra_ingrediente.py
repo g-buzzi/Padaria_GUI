@@ -1,19 +1,19 @@
+from typing import List
 from telas.tela_abstrata import Tela
 from collections import defaultdict
 
 class TelaMostraIngrediente(Tela):
-    
-    __instancia = None
+    instancia = None
 
     def __new__(cls):
-        if cls.__instancia is None:
-            cls.__instancia = super().__new__(cls)
-        return cls.__instancia
+        if TelaMostraIngrediente.instancia is None:
+            TelaMostraIngrediente.instancia = super().__new__(cls)
+        return TelaMostraIngrediente.instancia
 
     def __init__(self):
         super().__init__()
 
-    def campos(self, dados_ingrediente = defaultdict(lambda: None), leitura = False):
+    def campos(self, dados_ingrediente = defaultdict(lambda: None), unidades_medida = list(), leitura = False):
 
         lb_codigo = self.label("Código: ", tamanho=(17,1))
         in_codigo = self.entrada("codigo", dados_ingrediente["codigo"], leitura= leitura, tamanho= (33, 1))
@@ -22,7 +22,7 @@ class TelaMostraIngrediente(Tela):
         in_nome = self.entrada("nome", dados_ingrediente["nome"], leitura= leitura, tamanho= (33, 1))
 
         lb_unidade = self.label("Unidade de Medida: ", tamanho=(17,1))
-        in_unidade = self.entrada("unidade_medida", dados_ingrediente["unidade_medida"], leitura= leitura, tamanho= (33, 1))
+        in_unidade = self.seletor("unidade_medida", valores= unidades_medida, valor_selecionado= dados_ingrediente["unidade_medida"], leitura= leitura, tamanho= (30, 1))
 
         lb_preco = self.label("Preço Unitário: ", tamanho=(17,1))
         in_preco = self.entrada("preco_unitario", dados_ingrediente["preco_unitario"], leitura = leitura, tamanho= (33, 1))
@@ -36,7 +36,7 @@ class TelaMostraIngrediente(Tela):
 
     def mostra(self, dados_ingrediente = {}):
         titulo = self.titulo(dados_ingrediente["nome"])
-        campos = self.campos(dados_ingrediente, True)
+        campos = self.campos(dados_ingrediente, leitura = True)
         alterar = self.botao("Alterar", "inicia_alteracao")
         remover = self.botao("Remover", "remove")
         voltar = self.botao("Voltar", "volta")
@@ -47,9 +47,9 @@ class TelaMostraIngrediente(Tela):
         self.window = self.janela(layout)
         return self.read()
 
-    def cadastra(self, dados_ingrediente = defaultdict(lambda: None)):
+    def cadastra(self, dados_ingrediente = defaultdict(lambda: None), unidades_medida = list()):
         titulo = self.titulo("Cadastra")
-        campos = self.campos(dados_ingrediente)
+        campos = self.campos(dados_ingrediente, unidades_medida)
         altera = self.botao("Cadastrar", "cadastra")
         voltar = self.botao("Voltar", "volta")
         layout = [[titulo]]
@@ -59,9 +59,9 @@ class TelaMostraIngrediente(Tela):
         self.window = self.janela(layout)
         return self.read()
 
-    def altera(self, dados_ingrediente = {}):
+    def altera(self, dados_ingrediente = {}, unidades_medida = list()):
         titulo = self.titulo(dados_ingrediente["nome"])
-        campos = self.campos(dados_ingrediente)
+        campos = self.campos(dados_ingrediente, unidades_medida)
         altera = self.botao("Concluir", "conclui_alteracao")
         voltar = self.botao("Voltar", "volta")
         layout = [[titulo]]

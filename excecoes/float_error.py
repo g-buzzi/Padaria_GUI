@@ -1,4 +1,4 @@
-from excecoes.InputError import InputError
+from excecoes.input_error import InputError
 
 class FloatError(InputError):
     def __init__(self, campo: str, *args: object) -> None:
