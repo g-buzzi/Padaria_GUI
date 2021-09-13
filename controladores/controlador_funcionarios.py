@@ -1,5 +1,7 @@
+from excecoes.duplicated_exception import DuplicatedException
+from excecoes.input_error import InputError
+from telas.tela_mostra_funcionario import TelaMostraFuncionario
 from controladores.controlador_abstrato import Controlador
-from telas.tela_funcionario import TelaFuncionario
 from entidades.funcionario import Funcionario
 from DAOs.funcionario_dao import FuncionarioDao
 from telas.tela_lista_funcionario import TelaListaFuncionario
@@ -21,70 +23,62 @@ class ControladorFuncionarios(Controlador):
         dados = []
         for funcionario in self.__dao.get_objects():
             dados.append([funcionario.matricula, funcionario.nome, funcionario.cpf,
-                          funcionario.telefone, funcionario.salario, funcionario.email])
+                          funcionario.telefone, funcionario.email, funcionario.salario])
         return dados
 
     # ============================================ Listar Funcionários =============================
 
     def abre_tela_inicial(self, dados=None):
-        # switcher = {"cadastrar": self.cadastrar, "pesquisar": self.pesquisar, "lista_clique_duplo": self.mostrar,
-        #             "listar": self.listar}
-        # self.listar()
+        switcher = {"cadastrar": self.cadastra_funcionario, "pesquisar": self.cadastra_funcionario, "lista_clique_duplo": self.cadastra_funcionario,
+                    "listar": self.cadastra_funcionario}
         while True:
             self.tela = TelaListaFuncionario()
             self.__lista = self.dados_funcionarios()
             botao, valores = self.tela.lista_funcionarios(self.__lista, self.__pesquisa)
+            switcher[botao](valores)
 
     ###############################################################################################
-    #
-    # def abre_tela_inicial(self):
-    #     switcher = {0: False, 1: self.cadastra_funcionario, 2: self.altera_funcionario, 3: self.remove_funcionario,
-    #                 4: self.lista_funcionarios, 5: self.seleciona_funcionario_por_matricula}
-    #
-    #     opcoes = {1: "Cadastrar", 2: "Alterar", 3: "Remover", 4: "Listar", 5: "Pesquisar", 0: "Voltar"}
-    #     while True:
-    #         opcao = self.tela.mostra_opcoes(opcoes, "--------- Funcionários ---------")
-    #         funcao_escolhida = switcher[opcao]
-    #         if funcao_escolhida:
-    #             funcao_escolhida()
-    #         else:
-    #             break
 
-    def cadastra_funcionario(self):
-        opcoes = {1: "Continuar cadastrando", 0: "Voltar"}
+
+    def tratar_dados(self, dados: dict):
+        try:
+            dados["matricula"] = self.formata_int(dados["matricula"], "Matrícula")
+            dados["nome"] = self.formata_string(dados["nome"])
+            dados["cpf"] = self.formata_string(dados["cpf"])
+            dados["email"] = self.formata_string(dados["email"])
+            dados["telefone"] = self.formata_int(dados["telefone"], "Telefone")
+            dados["salario"] = self.formata_float(dados["salario"], "Salário")
+            return dados
+        except InputError as e:
+            self.tela.mensagem_erro(e.mensagem)
+            raise InputError()
+
+    def cadastra_funcionario(self, valores):
 
         while True:
-            dados_funcionario = self.tela.recebe_dados_funcionarios('Cadastra')
-            self.tela.quebra_linha()
-            resposta_matricula = self.verifica_se_ja_existe_funcionario_com_matricula(dados_funcionario['matricula'])
-            resposta_cpf = self.verifica_se_ja_existe_funcionario_com_cpf(dados_funcionario['cpf'])
-            if resposta_matricula:
-                self.tela.mensagem_erro('Já existe funcionário com essa matrícula.')
-                break
-            elif resposta_cpf:
-                self.tela.mensagem_erro('Já existe funcionário com esse cpf.')
-                break
-            else:
+            self.tela = TelaMostraFuncionario()
+            botao, dados_funcionario = self.tela.cadastra()
+            dados_funcionario = self.tratar_dados(dados_funcionario)
+            try:
+                self.verifica_se_ja_existe_funcionario_com_matricula(dados_funcionario['matricula'])
+                self.verifica_se_ja_existe_funcionario_com_cpf(dados_funcionario['cpf'])
                 self.salva_dados_funcionario(dados_funcionario)
                 self.tela.mensagem('Funcionário cadastrado com sucesso!')
+            except DuplicatedException as e:
+                self.tela.mensagem_erro(str(e))
             
-            opcao = self.tela.mostra_opcoes(opcoes)
-            if opcao == 0:
-                break
+            self.tela.close()
+            break
             
     def verifica_se_ja_existe_funcionario_com_matricula(self, matricula):
-        for funcionario in self.__dao.get_all():
-            if matricula == funcionario.matricula:
-                return funcionario                
-        else:
-            return None
+        for funcionario in self.__dao.get_objects():
+            if matricula and matricula == funcionario.matricula:
+                raise DuplicatedException(mensagem_personalizada='Já existe funcionário com essa matrícula.')
         
     def verifica_se_ja_existe_funcionario_com_cpf(self, cpf):
-        for funcionario in self.__dao.get_all():
+        for funcionario in self.__dao.get_objects():
             if cpf == funcionario.cpf:
-                return funcionario                
-        else:
-            return None
+                raise DuplicatedException(mensagem_personalizada='Já existe funcionário com esse cpf.')
         
     def salva_dados_funcionario(self, dados_funcionario):
         self.__dao.add(Funcionario(
