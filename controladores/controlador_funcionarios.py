@@ -41,31 +41,33 @@ class ControladorFuncionarios(Controlador):
 
 
     def tratar_dados(self, dados: dict):
-        try:
-            dados["matricula"] = self.formata_int(dados["matricula"], "Matrícula")
-            dados["nome"] = self.formata_string(dados["nome"])
-            dados["cpf"] = self.formata_string(dados["cpf"])
-            dados["email"] = self.formata_string(dados["email"])
-            dados["telefone"] = self.formata_int(dados["telefone"], "Telefone")
-            dados["salario"] = self.formata_float(dados["salario"], "Salário")
-            return dados
-        except InputError as e:
-            self.tela.mensagem_erro(e.mensagem)
-            raise InputError()
+        
+        dados["matricula"] = self.formata_int(dados["matricula"], "Matrícula")
+        dados["nome"] = self.formata_string(dados["nome"])
+        dados["cpf"] = self.formata_string(dados["cpf"])
+        dados["email"] = self.formata_string(dados["email"])
+        dados["telefone"] = self.formata_int(dados["telefone"], "Telefone")
+        dados["salario"] = self.formata_float(dados["salario"], "Salário")
+        return dados
 
     def cadastra_funcionario(self, valores):
 
         while True:
             self.tela = TelaMostraFuncionario()
             botao, dados_funcionario = self.tela.cadastra()
-            dados_funcionario = self.tratar_dados(dados_funcionario)
-            try:
-                self.verifica_se_ja_existe_funcionario_com_matricula(dados_funcionario['matricula'])
-                self.verifica_se_ja_existe_funcionario_com_cpf(dados_funcionario['cpf'])
-                self.salva_dados_funcionario(dados_funcionario)
-                self.tela.mensagem('Funcionário cadastrado com sucesso!')
-            except DuplicatedException as e:
-                self.tela.mensagem_erro(str(e))
+            if botao != 'volta':
+                try:
+                    dados_funcionario = self.tratar_dados(dados_funcionario)
+                except InputError as e:
+                    self.tela.mensagem_erro(e.mensagem)
+                    continue
+                try:
+                    self.verifica_se_ja_existe_funcionario_com_matricula(dados_funcionario['matricula'])
+                    self.verifica_se_ja_existe_funcionario_com_cpf(dados_funcionario['cpf'])
+                    self.salva_dados_funcionario(dados_funcionario)
+                    self.tela.mensagem('Funcionário cadastrado com sucesso!')
+                except DuplicatedException as e:
+                    self.tela.mensagem_erro(str(e))
             
             self.tela.close()
             break
