@@ -29,13 +29,19 @@ class ControladorFuncionarios(Controlador):
     # ============================================ Listar Funcionários =============================
 
     def abre_tela_inicial(self, dados=None):
-        switcher = {"cadastrar": self.cadastra_funcionario, "pesquisar": self.cadastra_funcionario, "lista_clique_duplo": self.cadastra_funcionario,
+        switcher = {"cadastrar": self.cadastra_funcionario, "pesquisar": self.cadastra_funcionario, "lista_clique_duplo": self.mostrar_funcionario,
                     "listar": self.cadastra_funcionario}
         while True:
             self.tela = TelaListaFuncionario()
             self.__lista = self.dados_funcionarios()
             botao, valores = self.tela.lista_funcionarios(self.__lista, self.__pesquisa)
+            
+            if botao == 'voltar':
+                self.tela.close()
+                break
+
             switcher[botao](valores)
+
 
     ###############################################################################################
 
@@ -71,6 +77,32 @@ class ControladorFuncionarios(Controlador):
             
             self.tela.close()
             break
+
+    def mostrar_funcionario(self, dados):
+        try:
+            selecionado = dados["lista"][0]
+            matricula_funcionario = self.__lista[selecionado][0]
+            funcionario = self.__dao.get(matricula_funcionario)
+            self.tela = TelaMostraFuncionario()
+            botao, dados = self.tela.mostra(self.dados_funcionario(funcionario))
+        except IndexError:
+            return
+
+        if botao == 'remove':
+            self.remove_funcionario(matricula_funcionario)
+
+        self.tela.close()
+
+    def dados_funcionario(self, funcionario: Funcionario) -> dict:
+        dados = {
+            "matricula": funcionario.matricula, 
+            "nome": funcionario.nome, 
+            "cpf": funcionario.cpf, 
+            "email": funcionario.email, 
+            "telefone": funcionario.telefone,
+            "salario": funcionario.salario
+        }
+        return dados
             
     def verifica_se_ja_existe_funcionario_com_matricula(self, matricula):
         for funcionario in self.__dao.get_objects():
@@ -93,51 +125,24 @@ class ControladorFuncionarios(Controlador):
         ))
 
     def lista_funcionarios(self):
-        self.tela.cabecalho('Lista Funcionários')
+        self.tela = TelaListaFuncionario()
+        self.tela.lista_funcionarios(self.dados_funcionarios())
 
-        for funcionario in self.__dao.get_all():
-            self.tela.mostra_funcionario({
-                'matricula': funcionario.matricula,
-                'nome': funcionario.nome,
-                'cpf': funcionario.cpf,
-                'telefone': funcionario.telefone,
-                'email': funcionario.email,
-                'salario': funcionario.salario
-            })
-
-    def remove_funcionario(self):
-        opcoes = {1: "Continuar removendo", 0: "Voltar"}
-        while True:
-            matricula = self.tela.solicita_matricula_funcionario('Remove Funcionário')
-
-            funcionario = self.verifica_se_ja_existe_funcionario_com_matricula(matricula)
-            if isinstance(funcionario, Funcionario):
-                self.__dao.remove(funcionario.matricula)
-                self.tela.mensagem("Funcionário removido com sucesso") 
-            else:
-                self.tela.mensagem_erro('Funcionário não encontrado!')
+    def remove_funcionario(self, matricula):
+        try:
+            self.seleciona_funcionario_por_matricula(matricula)
+            self.__dao.remove(matricula)
+            self.tela.mensagem("Funcionário removido com sucesso")
+        except IndexError as e:
+            self.tela.mensagem_erro(e.mensagem)
             
-            opcao = self.tela.mostra_opcoes(opcoes)
-            if opcao == 0:
-                break
 
-    def seleciona_funcionario_por_matricula(self):
-
-        matricula = self.tela.solicita_matricula_funcionario('Pesquisa Funcionário')
-
-        for funcionario in self.__dao.get_all():
+    def seleciona_funcionario_por_matricula(self, matricula: int):
+        for funcionario in self.__dao.get_objects():
             if funcionario.matricula == matricula:
-                self.tela.mostra_funcionario({
-                    'matricula': funcionario.matricula,
-                    'nome': funcionario.nome,
-                    'cpf': funcionario.cpf,
-                    'telefone': funcionario.telefone,
-                    'email': funcionario.email,
-                    'salario': funcionario.salario
-                })
-                break
-        else:
-            self.tela.mensagem("Nenhum funcionário com essa matrícula encontrada")
+                return funcionario
+            else:
+                raise IndexError(mensagem="Não existe funcionário com essa matrícula")
 
     def altera_funcionario(self):
         opcoes = {1: "Continuar alterando", 0: "Voltar"}

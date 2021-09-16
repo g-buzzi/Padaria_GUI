@@ -15,7 +15,7 @@ class TelaMostraFuncionario(Tela):
     def campos(self, dados_funcionario = defaultdict(lambda: None), leitura = False):
 
         lb_matricula = self.label("Matrícula: ", tamanho=(17,1))
-        in_matricula = self.entrada("matricula", dados_funcionario["codigo"], leitura= leitura, tamanho= (33, 1))
+        in_matricula = self.entrada("matricula", dados_funcionario["matricula"], leitura= leitura, tamanho= (33, 1))
 
         lb_nome = self.label("Nome: ", tamanho=(17,1))
         in_nome = self.entrada("nome", dados_funcionario["nome"], leitura= leitura, tamanho= (33, 1))
@@ -53,5 +53,18 @@ class TelaMostraFuncionario(Tela):
         for linha in campos:
             layout.append(linha)
         layout.append([altera, voltar])
+        self.window = self.janela(layout)
+        return self.read()
+
+    def mostra(self, dados_funcionario = {}):
+        titulo = self.titulo(dados_funcionario["nome"])
+        campos = self.campos(dados_funcionario, leitura = True)
+        alterar = self.botao("Alterar", "inicia_alteracao")
+        remover = self.botao("Remover", "remove")
+        voltar = self.botao("Voltar", "volta")
+        layout = [[titulo]]
+        for linha in campos:
+            layout.append(linha)
+        layout.append([alterar, remover, voltar])
         self.window = self.janela(layout)
         return self.read()
