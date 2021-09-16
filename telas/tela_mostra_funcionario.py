@@ -68,3 +68,15 @@ class TelaMostraFuncionario(Tela):
         layout.append([alterar, remover, voltar])
         self.window = self.janela(layout)
         return self.read()
+
+    def altera(self, dados_funcionario = {}):
+        titulo = self.titulo(dados_funcionario["nome"])
+        campos = self.campos(dados_funcionario)
+        altera = self.botao("Concluir", "conclui_alteracao")
+        voltar = self.botao("Voltar", "volta")
+        layout = [[titulo]]
+        for linha in campos:
+            layout.append(linha)
+        layout.append([altera, voltar])
+        self.window = self.janela(layout)
+        return self.read()

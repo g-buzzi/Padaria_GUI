@@ -26,7 +26,6 @@ class ControladorFuncionarios(Controlador):
                           funcionario.telefone, funcionario.email, funcionario.salario])
         return dados
 
-    # ============================================ Listar Funcionários =============================
     def listar(self, valores = None):
         self.__pesquisa = False
         self.tela = TelaListaFuncionario()
@@ -49,8 +48,6 @@ class ControladorFuncionarios(Controlador):
 
             switcher[botao](valores)
 
-
-    ###############################################################################################
 
     def pesquisar(self, valores = None):
         self.tela = TelaListaFuncionario()
@@ -112,7 +109,11 @@ class ControladorFuncionarios(Controlador):
         if botao == 'remove':
             self.remove_funcionario(matricula_funcionario)
 
+        if botao == 'inicia_alteracao':
+            self.alterar(self.dados_funcionario(funcionario))
+
         self.tela.close()
+
 
     def dados_funcionario(self, funcionario: Funcionario) -> dict:
         dados = {
@@ -164,6 +165,17 @@ class ControladorFuncionarios(Controlador):
                 return funcionario
             else:
                 raise IndexError(mensagem="Não existe funcionário com essa matrícula")
+
+    def alterar(self, dados_funcionario: dict):
+        self.tela = TelaMostraFuncionario()
+        botao, dados = self.tela.altera(dados_funcionario)
+        dados = self.tratar_dados(dados)
+        funcionario_novo = Funcionario(dados['matricula'], dados['nome'], dados['cpf'], dados['telefone'], dados['email'], dados['salario'])
+        if botao == 'conclui_alteracao':
+            self.__dao.update(dados_funcionario['matricula'], funcionario_novo)
+
+        self.tela.close
+
 
 
     def altera_funcionario(self):

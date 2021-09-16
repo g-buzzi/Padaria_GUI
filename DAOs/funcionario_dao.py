@@ -18,3 +18,7 @@ class FuncionarioDao(DAO):
     def remove(self, key: int):
         if isinstance(key, int):
             return super().remove(key)
+
+    def update(self, matricula_antiga: int, dado_novo_funcionario: Funcionario):
+        if isinstance(dado_novo_funcionario, Funcionario) and isinstance(matricula_antiga, int):
+            super().alter(matricula_antiga, dado_novo_funcionario.matricula, dado_novo_funcionario)
