@@ -27,14 +27,21 @@ class ControladorFuncionarios(Controlador):
         return dados
 
     # ============================================ Listar Funcionários =============================
+    def listar(self, valores = None):
+        self.__pesquisa = False
+        self.tela = TelaListaFuncionario()
+        self.__lista = self.dados_funcionarios()
+        return self.tela.lista_funcionarios(self.__lista, self.__pesquisa)
+
 
     def abre_tela_inicial(self, dados=None):
-        switcher = {"cadastrar": self.cadastra_funcionario, "pesquisar": self.cadastra_funcionario, "lista_clique_duplo": self.mostrar_funcionario,
-                    "listar": self.cadastra_funcionario}
+        switcher = {"cadastrar": self.cadastra_funcionario, 
+                    "pesquisar": self.pesquisar, 
+                    "lista_clique_duplo": self.mostrar_funcionario,
+                    "listar": self.listar}
+        
         while True:
-            self.tela = TelaListaFuncionario()
-            self.__lista = self.dados_funcionarios()
-            botao, valores = self.tela.lista_funcionarios(self.__lista, self.__pesquisa)
+            botao, valores = self.listar()
             
             if botao == 'voltar':
                 self.tela.close()
@@ -45,6 +52,20 @@ class ControladorFuncionarios(Controlador):
 
     ###############################################################################################
 
+    def pesquisar(self, valores = None):
+        self.tela = TelaListaFuncionario()
+        funcionarios = []
+        texto_pesquisado = self.tela.pesquisar('Nome ou matrícula:')
+
+        if texto_pesquisado:
+            for funcionario in self.__dao.get_objects():
+                if texto_pesquisado.lower() in funcionario.nome.lower() or texto_pesquisado in str(funcionario.matricula):
+                    funcionarios.append([funcionario.matricula, funcionario.nome, funcionario.cpf,
+                                        funcionario.telefone, funcionario.email, funcionario.salario])
+
+
+        self.__pesquisa = texto_pesquisado
+        self.tela.lista_funcionarios(funcionarios, self.__pesquisa)
 
     def tratar_dados(self, dados: dict):
         
@@ -143,6 +164,7 @@ class ControladorFuncionarios(Controlador):
                 return funcionario
             else:
                 raise IndexError(mensagem="Não existe funcionário com essa matrícula")
+
 
     def altera_funcionario(self):
         opcoes = {1: "Continuar alterando", 0: "Voltar"}
