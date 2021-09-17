@@ -5,6 +5,7 @@ from controladores.controlador_abstrato import Controlador
 from entidades.funcionario import Funcionario
 from DAOs.funcionario_dao import FuncionarioDao
 from telas.tela_lista_funcionario import TelaListaFuncionario
+from excecoes.empty_field import EmptyFieldError
 
 
 class ControladorFuncionarios(Controlador):
@@ -167,62 +168,26 @@ class ControladorFuncionarios(Controlador):
                 raise IndexError(mensagem="Não existe funcionário com essa matrícula")
 
     def alterar(self, dados_funcionario: dict):
-        self.tela = TelaMostraFuncionario()
-        botao, dados = self.tela.altera(dados_funcionario)
-        dados = self.tratar_dados(dados)
-        funcionario_novo = Funcionario(dados['matricula'], dados['nome'], dados['cpf'], dados['telefone'], dados['email'], dados['salario'])
-        if botao == 'conclui_alteracao':
-            self.__dao.update(dados_funcionario['matricula'], funcionario_novo)
-
-        self.tela.close
-
-
-
-    def altera_funcionario(self):
-        opcoes = {1: "Continuar alterando", 0: "Voltar"}
-
         while True:
-            matricula = self.tela.solicita_matricula_funcionario('Altera Funcionário')
-
-            funcionario = self.verifica_se_ja_existe_funcionario_com_matricula(matricula)
+            self.tela = TelaMostraFuncionario()
+            botao, dados = self.tela.altera(dados_funcionario)
+            try:
+                dados = self.tratar_dados(dados)          
             
-            if isinstance(funcionario, Funcionario):
-
-                dados_atualizados = self.tela.alteracao_funcionario({
-                    'matricula': funcionario.matricula,
-                    'nome': funcionario.nome,
-                    'cpf': funcionario.cpf,
-                    'telefone': funcionario.telefone,
-                    'email': funcionario.email,
-                    'salario': funcionario.salario
-                })
-                resposta_matricula = self.verifica_se_ja_existe_funcionario_com_matricula(dados_atualizados['matricula'])
-                resposta_cpf = self.verifica_se_ja_existe_funcionario_com_cpf(dados_atualizados['cpf'])
-                
-                if funcionario.matricula == dados_atualizados['matricula'] or resposta_matricula is None:
-                    if funcionario.cpf == dados_atualizados['cpf'] or resposta_cpf is None:
-
-                        self.__dao.remove(funcionario.matricula)
-                        self.__dao.add(Funcionario(dados_atualizados['matricula'],
-                                                   dados_atualizados['nome'],
-                                                   dados_atualizados['cpf'],
-                                                   dados_atualizados['telefone'],
-                                                   dados_atualizados['email'],
-                                                   dados_atualizados['salario']
-                                                   ))
-                        
-                        self.tela.mensagem("Alterações realizadas com sucesso") 
-                    
-                    else:
-                        self.tela.mensagem_erro('Esse cpf já está em uso por outro funcionário!')
+                funcionario_novo = Funcionario(dados['matricula'], dados['nome'], dados['cpf'], dados['telefone'], dados['email'], dados['salario'])
+                if botao == 'conclui_alteracao':
+                    try:
+                        if dados['matricula'] != dados_funcionario['matricula']:
+                            self.verifica_se_ja_existe_funcionario_com_matricula(dados['matricula'])
+                        if dados['cpf'] != dados_funcionario['cpf']:
+                            self.verifica_se_ja_existe_funcionario_com_cpf(dados['cpf'])
+        
+                        self.__dao.update(dados_funcionario['matricula'], funcionario_novo)
+                        self.tela.mensagem("Funcionário atualizado com sucesso")
                         break
-                    
-                else:
-                    self.tela.mensagem_erro('Essa matrícula já está em uso por outro funcionário!')
-                    break
-            else:
-                self.tela.mensagem_erro('Funcionário não encontrado!')
-                break
-            opcao = self.tela.mostra_opcoes(opcoes)
-            if opcao == 0:
-                break
+                    except DuplicatedException as e:
+                        self.tela.mensagem_erro(str(e))
+            
+            except InputError as e:
+                self.tela.mensagem_erro(e.mensagem)
+                continue
