@@ -292,8 +292,10 @@ class ControladorEstoque(Controlador):
     def processa_venda(self, venda: Venda):
         venda_organizada = self.possibilidade_venda(venda)
         for produto, quantidade in venda_organizada.items():
-            self.__estoque.venda(produto, quantidade)
-
+            estoque = self.estoque
+            estoque.venda(produto, quantidade)
+            ControladorProdutos().alteracao_estoque(produto)
+            self.__dao.add(estoque)
 
     def possibilidade_venda(self, venda: Venda):
         produtos = defaultdict(lambda: 0)

@@ -1,3 +1,4 @@
+from DAOs.receita_dao import ReceitaDAO
 from DAOs.dao_abstrato import DAO
 import DAOs.dao_ingrediente
 from entidades.produto import Produto
