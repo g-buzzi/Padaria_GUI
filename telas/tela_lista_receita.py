@@ -21,7 +21,7 @@ class TelaListaReceita(Tela):
             selecionado = "listar"
         botoes = {"Listar": "listar", "Cadastrar": "cadastrar", "Pesquisar": "pesquisar", "Voltar": "voltar"}
         opcoes = self.opcoes(botoes, selecionado)
-        lista = self.lista(["Código", "Produto", "Tempo de Preparo", "Rendimento"], dados)
+        lista = self.lista(["Código", "Produto", "Modo de Preparo", "Tempo de Preparo", "Rendimento", "Custo de Preparo"], dados)
         layout = [[titulo], opcoes, [lista]]
         self.window = self.janela(layout)
         self.configura_lista()

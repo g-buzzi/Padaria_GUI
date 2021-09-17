@@ -1,4 +1,5 @@
 from DAOs.dao_abstrato import DAO
+import DAOs.dao_ingrediente
 from entidades.produto import Produto
 from excecoes.not_found_exception import NotFoundException
 
@@ -40,3 +41,8 @@ class ProdutoDAO(DAO):
         produto = self._cache[produto.codigo]
         produto.receita = receita
         self.add(produto)
+
+    def producao(self, produto: Produto):
+        self.add(produto)
+        for ingrediente in produto.receita.ingredientes_receita.keys():
+            DAOs.dao_ingrediente.IngredienteDAO().alter(ingrediente, ingrediente.codigo)

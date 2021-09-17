@@ -20,9 +20,22 @@ class TelaListaProduto(Tela):
             selecionado = ""
         botoes = {"Listar": "listar", "Cadastrar": "cadastrar", "Pesquisar": "pesquisar", "Voltar": "voltar"}
         opcoes = self.opcoes(botoes, selecionado = selecionado)
-        lista = self.lista(["Código", "Nome", "Custo de produção", "Preço de Venda"], dados_produtos)
+        lista = self.lista(["Código", "Nome", "Descrição", "Custo de produção", "Preço de Venda"], dados_produtos)
         layout = [[titulo], opcoes, [lista]]
         self.window = self.janela(layout = layout, background = "#FC9326")
         self.configura_lista()
         return self.read()
+
+    def seleciona_produto(self, dados_produtos: list):
+        lista =  self.lista(["Código", "Nome", "Descrição", "Custo de produção", "Preço de Venda"], dados_produtos, chave= "lista")
+        janela = self.popup([[lista]], "Selecionar Produto", keyboard_events= False)
+        self.configura_lista(janela= janela)
+        botao, values = janela.read(close = True)
+        if botao is None:
+            return None
+        else:
+            try:
+                return values["lista"][0]
+            except IndexError:
+                return None
         

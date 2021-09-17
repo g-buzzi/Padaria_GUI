@@ -37,8 +37,8 @@ class TelaMostraProduto(Tela):
         lb_preco_venda = self.label("Preço de venda:", tamanho=(17, 1))
         in_preco_venda = self.entrada("preco_venda", dados_produto["preco_venda"], leitura, tamanho=(33,1))
 
-        lb_descricao = self.label("Descrição:", tamanho=(50, 1), padding=(1, 1))
-        in_descricao = self.textarea("descricao", dados_produto["descricao"], leitura, tamanho=(50, 10))
+        lb_descricao = self.label("Descrição:", tamanho=(46, 1), padding=(1, 1))
+        in_descricao = self.textarea("descricao", dados_produto["descricao"], leitura, tamanho=(46, 10))
 
         campos = [[lb_codigo, in_codigo],
                    [lb_nome, in_nome],
@@ -49,7 +49,7 @@ class TelaMostraProduto(Tela):
         return campos
 
     def cadastra(self, dados):
-        titulo = self.titulo("Cadastrar")
+        titulo = self.titulo("Cadastrar Produto")
         
         campos = self.campos(dados)
 
@@ -63,7 +63,7 @@ class TelaMostraProduto(Tela):
         return self.read()
 
     def altera(self, dados):
-        titulo = self.titulo("Alterar")
+        titulo = self.titulo("Alterar Produto")
         
         campos = self.campos(dados)
 
@@ -77,7 +77,7 @@ class TelaMostraProduto(Tela):
         return self.read()
 
     def mostra(self, dados):
-        titulo = self.titulo("Produto")
+        titulo = self.titulo(dados["nome"])
 
         campos = self.campos(dados, True)
 

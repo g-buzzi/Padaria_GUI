@@ -4,11 +4,16 @@ from entidades.cliente import Cliente
 from DAOs.cliente_dao import ClienteDao
 
 class ControladorClientes(Controlador):
+    instancia = None
 
-    def __init__(self, controlador_central):
+    def __new__(cls):
+        if cls.instancia is None:
+            cls.instancia = super().__new__(cls)
+        return cls.instancia
+
+    def __init__(self):
         super().__init__(TelaCliente(self))
-        self.__dao = ClienteDao();
-        self.__controlador_central = controlador_central
+        self.__dao = ClienteDao()
         
     def abre_tela_inicial(self):
         switcher = {

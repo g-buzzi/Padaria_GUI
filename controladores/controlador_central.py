@@ -10,32 +10,33 @@ from controladores.controlador_vendas import ControladorVendas
 
 
 class ControladorCentral(Controlador):
+    instancia = None
+
+    def __new__(cls):
+        if cls.instancia is None:
+            cls.instancia = super().__new__(cls)
+        return cls.instancia
 
     def __init__(self):
         super().__init__(TelaCentral())
-        self.__controlador_ingredientes = ControladorIngredientes(self)
-        self.__controlador_receitas = ControladorReceitas(self)
-        self.__controlador_produtos = ControladorProdutos(self)
-        self.__controlador_estoque = ControladorEstoque(self)
-        self.__controlador_funcionarios = ControladorFuncionarios(self)
-        self.__controlador_clientes = ControladorClientes(self)
-        self.__controlador_vendas = ControladorVendas(self)
-
 
     def abre_tela_inicial(self):
         switcher = {
-            "sair": quit, "ingredientes": self.controlador_ingredientes.inicia, 
-            "receitas": self.controlador_receitas.inicia, 
-            "produtos": self.controlador_produtos.inicia, 
-            "estoque": self.controlador_estoque.inicia, 
-            "funcionarios": self.controlador_funcionarios.inicia, 
-            "clientes": self.controlador_clientes.inicia,
-            "vendas": self.controlador_vendas.inicia
+            "sair": quit, "ingredientes": ControladorIngredientes, 
+            "receitas": ControladorReceitas, 
+            "produtos": ControladorProdutos, 
+            "estoque": ControladorEstoque, 
+            "funcionarios": ControladorFuncionarios, 
+            "clientes": ControladorClientes,
+            "vendas": ControladorVendas
         }
         while True:
             botao, dados = self.tela.inicia()
             self.tela.close()
-            switcher[botao]()
+            if botao == "sair":
+                quit()
+            else:
+                switcher[botao]().inicia()
 
     @property
     def controlador_ingredientes(self):

@@ -35,8 +35,8 @@ class IngredienteDAO(DAO):
 
     def alter(self, ingrediente: Ingrediente, codigo_antigo: int):
         if isinstance(ingrediente, Ingrediente) and isinstance(codigo_antigo, int):
-            super().alter(codigo_antigo, ingrediente.codigo, ingrediente)
             ReceitaDAO().update_ingredientes(ingrediente, codigo_antigo)
+            super().alter(codigo_antigo, ingrediente.codigo, ingrediente)
 
                 
 
