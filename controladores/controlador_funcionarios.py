@@ -61,9 +61,11 @@ class ControladorFuncionarios(Controlador):
                     funcionarios.append([funcionario.matricula, funcionario.nome, funcionario.cpf,
                                         funcionario.telefone, funcionario.email, funcionario.salario])
 
-
-        self.__pesquisa = texto_pesquisado
-        self.tela.lista_funcionarios(funcionarios, self.__pesquisa)
+            self.__pesquisa = texto_pesquisado
+            self.tela.lista_funcionarios(funcionarios, self.__pesquisa)
+            
+        else:
+            self.tela.close()
 
     def tratar_dados(self, dados: dict):
         
@@ -76,7 +78,6 @@ class ControladorFuncionarios(Controlador):
         return dados
 
     def cadastra_funcionario(self, valores):
-
         while True:
             self.tela = TelaMostraFuncionario()
             botao, dados_funcionario = self.tela.cadastra()
@@ -93,27 +94,36 @@ class ControladorFuncionarios(Controlador):
                     self.tela.mensagem('Funcionário cadastrado com sucesso!')
                 except DuplicatedException as e:
                     self.tela.mensagem_erro(str(e))
+                    continue
             
             self.tela.close()
             break
 
     def mostrar_funcionario(self, dados):
-        try:
-            selecionado = dados["lista"][0]
-            matricula_funcionario = self.__lista[selecionado][0]
-            funcionario = self.__dao.get(matricula_funcionario)
-            self.tela = TelaMostraFuncionario()
-            botao, dados = self.tela.mostra(self.dados_funcionario(funcionario))
-        except IndexError:
-            return
+   
+        selecionado = dados["lista"][0]
+        matricula_funcionario = self.__lista[selecionado][0]
+       
+        while True:
+            try:
+                funcionario = self.__dao.get(matricula_funcionario)
+                self.tela = TelaMostraFuncionario()
+                botao, dados = self.tela.mostra(self.dados_funcionario(funcionario))
+            except IndexError:
+                return
 
-        if botao == 'remove':
-            self.remove_funcionario(matricula_funcionario)
+            if botao == 'remove':
+                self.remove_funcionario(matricula_funcionario)
+                break
+            
+            if botao == 'inicia_alteracao':
+                self.alterar_funcionario(self.dados_funcionario(funcionario))
+                break
 
-        if botao == 'inicia_alteracao':
-            self.alterar(self.dados_funcionario(funcionario))
-
-        self.tela.close()
+            if botao == 'volta':
+                break
+                
+            self.tela.close
 
 
     def dados_funcionario(self, funcionario: Funcionario) -> dict:
@@ -151,26 +161,19 @@ class ControladorFuncionarios(Controlador):
         self.tela = TelaListaFuncionario()
         self.tela.lista_funcionarios(self.dados_funcionarios())
 
-    def remove_funcionario(self, matricula):
-        try:
-            self.seleciona_funcionario_por_matricula(matricula)
-            self.__dao.remove(matricula)
-            self.tela.mensagem("Funcionário removido com sucesso")
-        except IndexError as e:
-            self.tela.mensagem_erro(e.mensagem)
-            
+    def remove_funcionario(self, matricula: int):
+        self.__dao.remove(matricula)
+        self.tela.mensagem("Funcionário removido com sucesso")
+  
 
-    def seleciona_funcionario_por_matricula(self, matricula: int):
-        for funcionario in self.__dao.get_objects():
-            if funcionario.matricula == matricula:
-                return funcionario
-            else:
-                raise IndexError(mensagem="Não existe funcionário com essa matrícula")
-
-    def alterar(self, dados_funcionario: dict):
+    def alterar_funcionario(self, dados_funcionario: dict):
         while True:
             self.tela = TelaMostraFuncionario()
             botao, dados = self.tela.altera(dados_funcionario)
+            
+            if botao == 'volta':
+                break
+
             try:
                 dados = self.tratar_dados(dados)          
             

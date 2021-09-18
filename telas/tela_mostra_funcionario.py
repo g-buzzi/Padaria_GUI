@@ -29,7 +29,7 @@ class TelaMostraFuncionario(Tela):
         lb_email = self.label("E-mail: ", tamanho=(17,1))
         in_email = self.entrada("email", dados_funcionario["email"], leitura= leitura, tamanho= (33, 1))
 
-        lb_salario = self.label("Salário: ", tamanho=(17,1))
+        lb_salario = self.label("Salário R$: ", tamanho=(17,1))
         in_salario = self.entrada("salario", dados_funcionario["salario"], leitura = leitura, tamanho= (33, 1))
 
         campos = [

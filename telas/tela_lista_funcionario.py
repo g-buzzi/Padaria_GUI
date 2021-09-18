@@ -22,7 +22,7 @@ class TelaListaFuncionario(Tela):
         if pesquisa:
             selecionado = ""
         opcoes = self.opcoes(botoes, selecionado=selecionado)
-        lista = self.lista(["Matrícula", "Nome", "CPF", "Telefone", "E-mail", "Salário"], dados_funcionarios, chave="lista")
+        lista = self.lista(["Matrícula", "Nome", "CPF", "Telefone", "E-mail", "Salário R$"], dados_funcionarios, chave="lista")
         layout = [[titulo], opcoes, [lista]]
         self.window = self.janela(layout=layout, background="#FC9326")
         self.configura_lista("lista")
