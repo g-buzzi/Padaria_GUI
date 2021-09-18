@@ -13,17 +13,13 @@ class TelaListaFuncionario(Tela):
         super().__init__()
 
     def lista_funcionarios(self, dados_funcionarios=[], pesquisa=False):
-        if pesquisa is not False:
-            titulo = self.titulo("Pesquisa '" + pesquisa + "'")
-        else:
-            titulo = self.titulo("Funcionários")
-        botoes = {"Listar": "listar", "Cadastrar": "cadastrar", "Pesquisar": "pesquisar", "Voltar": "voltar"}
-        selecionado = "listar"
-        if pesquisa:
-            selecionado = ""
-        opcoes = self.opcoes(botoes, selecionado=selecionado)
-        lista = self.lista(["Matrícula", "Nome", "CPF", "Telefone", "E-mail", "Salário R$"], dados_funcionarios, chave="lista")
-        layout = [[titulo], opcoes, [lista]]
+   
+        layout = [
+                    [self.titulo("Pesquisa '" + pesquisa + "'") if pesquisa is not False else self.titulo("Funcionários")], 
+                    self.opcoes(botoes= {"Listar": "listar", "Cadastrar": "cadastrar", "Pesquisar": "pesquisar", "Voltar": "voltar"}, selecionado= "" if pesquisa else "listar"), 
+                    [self.lista(["Matrícula", "Nome", "CPF", "Telefone", "E-mail", "Salário R$"], dados_funcionarios, chave="lista")]
+                ]
+                
         self.window = self.janela(layout=layout, background="#FC9326")
         self.configura_lista("lista")
         return self.read()
