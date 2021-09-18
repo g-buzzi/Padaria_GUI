@@ -44,39 +44,39 @@ class TelaMostraFuncionario(Tela):
         return campos
 
     
-    def cadastra(self, dados_funcionario = defaultdict(lambda: None)):
-        titulo = self.titulo("Cadastrar Funcionário")
-        campos = self.campos(dados_funcionario)
-        altera = self.botao("Cadastrar", "cadastra")
-        voltar = self.botao("Voltar", "volta")
-        layout = [[titulo]]
-        for linha in campos:
-            layout.append(linha)
-        layout.append([altera, voltar])
+    def cadastra(self, dados_funcionario = defaultdict(lambda: None)): 
+
+        layout = [
+                    [self.titulo("Cadastrar Funcionário")],
+                    list(map(lambda campo : campo, self.campos(dados_funcionario))),
+                    [self.botao("Cadastrar", "cadastra"), self.botao("Voltar", "volta")]
+                ]
+
         self.window = self.janela(layout)
         return self.read()
 
     def mostra(self, dados_funcionario = {}):
-        titulo = self.titulo(dados_funcionario["nome"])
-        campos = self.campos(dados_funcionario, leitura = True)
-        alterar = self.botao("Alterar", "inicia_alteracao")
-        remover = self.botao("Remover", "remove")
-        voltar = self.botao("Voltar", "volta")
-        layout = [[titulo]]
-        for linha in campos:
-            layout.append(linha)
-        layout.append([alterar, remover, voltar])
+        
+        layout = [
+                    [self.titulo(dados_funcionario["nome"])],
+                    list(map(lambda campo : campo, self.campos(dados_funcionario, leitura = True))),
+                    [
+                        self.botao("Alterar", "inicia_alteracao"), 
+                        self.botao("Remover", "remove"), 
+                        self.botao("Voltar", "volta")
+                    ]
+                ]
+       
         self.window = self.janela(layout)
         return self.read()
 
     def altera(self, dados_funcionario = {}):
-        titulo = self.titulo(dados_funcionario["nome"])
-        campos = self.campos(dados_funcionario)
-        altera = self.botao("Concluir", "conclui_alteracao")
-        voltar = self.botao("Voltar", "volta")
-        layout = [[titulo]]
-        for linha in campos:
-            layout.append(linha)
-        layout.append([altera, voltar])
+   
+        layout = [
+                    [self.titulo(dados_funcionario["nome"])],
+                    list(map(lambda campo : campo, self.campos(dados_funcionario))),
+                    [self.botao("Concluir", "conclui_alteracao"), self.botao("Voltar", "volta")]
+                ]
+
         self.window = self.janela(layout)
         return self.read()
