@@ -1,20 +1,15 @@
-from tkinter.constants import NONE
+from controladores.controlador_abstrato import Controlador
+from entidades.movimentacao import Movimentacao
+from entidades.venda import Venda
+from telas.tela_menu_estoque import TelaMenuEstoque
+from telas.tela_lista_estoque import TelaListaEstoque
+from telas.tela_mostra_estoque import TelaMostraEstoque
+from DAOs.dao_estoque import EstoqueDAO
 from controladores.controlador_ingredientes import ControladorIngredientes
 from controladores.controlador_produtos import ControladorProdutos
 from excecoes.not_found_exception import NotFoundException
-from PySimpleGUI.PySimpleGUI import In
-from telas.tela_mostra_estoque import TelaMostraEstoque
-from telas.tela_lista_estoque import TelaListaEstoque
-from typing import DefaultDict
-from entidades.venda import Venda
-from entidades.movimentacao import Movimentacao
-from controladores.controlador_abstrato import Controlador
-from telas.tela_menu_estoque import TelaMenuEstoque
-from datetime import datetime
-from entidades.estoque import Estoque
-from collections import defaultdict
-from DAOs.dao_estoque import EstoqueDAO
 from excecoes.input_error import InputError
+from collections import defaultdict
 
 class ControladorEstoque(Controlador):
     instancia = None

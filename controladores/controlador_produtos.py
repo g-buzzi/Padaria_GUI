@@ -1,14 +1,14 @@
-import controladores.controlador_receitas
-import textwrap
-from excecoes.duplicated_exception import DuplicatedException
-from excecoes.not_found_exception import NotFoundException
+from controladores.controlador_abstrato import Controlador
+from entidades.produto import Produto
 from telas.tela_lista_produto import TelaListaProduto
 from telas.tela_mostra_produto import TelaMostraProduto
-from controladores.controlador_abstrato import Controlador
-from collections import defaultdict
-from entidades.produto import Produto
 from DAOs.dao_produto import ProdutoDAO
+import controladores.controlador_receitas
+from excecoes.duplicated_exception import DuplicatedException
+from excecoes.not_found_exception import NotFoundException
 from excecoes.input_error import InputError
+from collections import defaultdict
+import textwrap
 
 class ControladorProdutos(Controlador):
     instancia = None

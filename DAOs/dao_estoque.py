@@ -1,6 +1,5 @@
 from DAOs.dao_abstrato import DAO
 from entidades.estoque import Estoque
-from excecoes.not_found_exception import NotFoundException
 
 class EstoqueDAO(DAO):
     instancia = None

@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
+from telas.tela_abstrata import Tela
 from excecoes.empty_field import EmptyFieldError
 from excecoes.float_error import FloatError
 from excecoes.int_error import IntError
-from telas.tela_abstrata import Tela
-
 
 class Controlador(ABC):
     @abstractmethod

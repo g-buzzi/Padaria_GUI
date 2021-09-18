@@ -1,13 +1,13 @@
-import controladores.controlador_produtos
-from controladores.controlador_ingredientes import ControladorIngredientes
-from excecoes.input_error import InputError
-from excecoes.duplicated_exception import DuplicatedException
-from entidades.produto import Produto
 from controladores.controlador_abstrato import Controlador
+from entidades.produto import Produto
 from entidades.receita import Receita
 from telas.tela_mostra_receita import TelaMostraReceita
 from telas.tela_lista_receita import TelaListaReceita
 from DAOs.receita_dao import ReceitaDAO
+import controladores.controlador_produtos
+from controladores.controlador_ingredientes import ControladorIngredientes
+from excecoes.input_error import InputError
+from excecoes.duplicated_exception import DuplicatedException
 from excecoes.not_found_exception import NotFoundException
 from collections import defaultdict
 import textwrap

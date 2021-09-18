@@ -1,7 +1,7 @@
 from DAOs.dao_abstrato import DAO
 from entidades.ingrediente import Ingrediente
-from excecoes.not_found_exception import NotFoundException
 from DAOs.receita_dao import ReceitaDAO
+from excecoes.not_found_exception import NotFoundException
 
 class IngredienteDAO(DAO):
     instancia = None

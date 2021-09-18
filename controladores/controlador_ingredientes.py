@@ -1,12 +1,10 @@
-from excecoes.not_found_exception import NotFoundException
-from excecoes.input_error import InputError
+from controladores.controlador_abstrato import Controlador
+from entidades.ingrediente import Ingrediente
 from telas.tela_mostra_ingrediente import TelaMostraIngrediente
 from telas.tela_lista_ingrediente import TelaListaIngrediente
-from controladores.controlador_abstrato import Controlador
 from DAOs.dao_ingrediente import IngredienteDAO
-from entidades.ingrediente import Ingrediente
-
-
+from excecoes.not_found_exception import NotFoundException
+from excecoes.input_error import InputError
 
 class ControladorIngredientes(Controlador):
     instancia = None
