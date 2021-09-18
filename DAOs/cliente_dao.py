@@ -18,3 +18,7 @@ class ClienteDao(DAO):
     def remove(self, key: str):
         if isinstance(key, str):
             return super().remove(key)
+
+    def update(self, cpf_antigo: str, dado_novo_cliente: Cliente):
+        if isinstance(dado_novo_cliente, Cliente) and isinstance(cpf_antigo, str):
+            super().alter(cpf_antigo, dado_novo_cliente.cpf, dado_novo_cliente)

@@ -2,7 +2,7 @@ from entidades.pessoa import Pessoa
 
 class Cliente(Pessoa):
 
-    def __init__(self, nome: str, cpf: str, telefone: int, email: str, endereco: str):
+    def __init__(self, cpf: str, nome: str, telefone: int, email: str, endereco: str):
         super().__init__(nome, cpf, telefone, email)
         self.__endereco = endereco
 

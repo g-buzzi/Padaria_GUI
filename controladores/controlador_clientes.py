@@ -1,156 +1,182 @@
+from excecoes.duplicated_exception import DuplicatedException
+from excecoes.input_error import InputError
+from telas.tela_mostra_cliente import TelaMostraCliente
+from telas.tela_lista_cliente import TelaListaCliente
 from controladores.controlador_abstrato import Controlador
-from telas.tela_cliente import TelaCliente
 from entidades.cliente import Cliente
 from DAOs.cliente_dao import ClienteDao
 
 class ControladorClientes(Controlador):
-    instancia = None
+    __instancia = None
 
     def __new__(cls):
-        if cls.instancia is None:
-            cls.instancia = super().__new__(cls)
-        return cls.instancia
-
+        if ControladorClientes.__instancia is None:
+            ControladorClientes.__instancia = object.__new__(cls)
+        return ControladorClientes.__instancia
+    
     def __init__(self):
-        super().__init__(TelaCliente(self))
+        super().__init__(TelaListaCliente())
         self.__dao = ClienteDao()
+        self.__pesquisa = False
+
+    def inicia(self):
+        self.abre_tela_inicial()
+
+    def dados_clientes(self):
+        dados = []
+        for cliente in self.__dao.get_objects():
+            dados.append([cliente.cpf, cliente.nome,
+                          cliente.telefone, cliente.email, 
+                          cliente.endereco])
+        return dados
+
+    def listar(self, valores = None):
+        self.__pesquisa = False
+        self.tela = TelaListaCliente()
+        self.__lista = self.dados_clientes()
+        return self.tela.lista_clientes(self.__lista, self.__pesquisa)
+
+    def abre_tela_inicial(self, dados=None):
+        switcher = {"cadastrar": self.cadastra_cliente, 
+                    "pesquisar": self.pesquisar, 
+                    "lista_clique_duplo": self.mostrar_cliente,
+                    "listar": self.listar}
         
-    def abre_tela_inicial(self):
-        switcher = {
-            0: False, 
-            1: self.cadastra_cliente, 
-            2: self.altera_cliente,
-            3: self.remove_cliente,
-            4: self.lista_clientes,
-            5: self.seleciona_cliente_por_cpf}
-
-        opcoes = {1: "Cadastrar", 2: "Alterar", 3: "Remover", 4: "Listar", 5: "Pesquisar", 0: "Voltar"}
         while True:
-            opcao = self.tela.mostra_opcoes(opcoes, "--------- Clientes ---------")
-            funcao_escolhida = switcher[opcao]
-            if funcao_escolhida:
-                funcao_escolhida()
-            else:
+            botao, valores = self.listar()
+            
+            if botao == 'voltar':
+                self.tela.close()
+                break
+
+            switcher[botao](valores)
+        
+    def cadastra_cliente(self, valores):
+        while True:
+            self.tela = TelaMostraCliente()
+            botao, dados_cliente = self.tela.cadastrar()
+            if botao != 'bt-voltar':
+                try:
+                    dados_cliente = self.tratar_dados(dados_cliente)
+                except InputError as e:
+                    self.tela.mensagem_erro(e.mensagem)
+                    continue
+                try:
+                    self.verifica_se_ja_existe_cliente_com_cpf(dados_cliente['cpf'])
+                    self.salva_dados_cliente(dados_cliente)
+                    self.tela.mensagem('Cliente cadastrado com sucesso!')
+                except DuplicatedException as e:
+                    self.tela.mensagem_erro(str(e))
+                    continue
+            
+            self.tela.close()
+            break
+
+    def mostrar_cliente(self, dados):
+   
+        selecionado = dados["lista"][0]
+        cpf_cliente = self.__lista[selecionado][0]
+       
+        while True:
+            try:
+                cliente = self.__dao.get(cpf_cliente)
+                self.tela = TelaMostraCliente()
+                botao, dados = self.tela.mostrar(self.dados_cliente(cliente))
+            except IndexError:
+                return
+
+            if botao == 'bt-remover':
+                self.remove_cliente(cpf_cliente)
                 break
             
-    def cadastra_cliente(self):
-        opcoes = {1: "Continuar cadastrando", 0: "Voltar"}
+            if botao == 'bt-alterar':
+                self.alterar_cliente(self.dados_cliente(cliente))
+                break
 
+            if botao == 'bt-voltar':
+                break
+                
+            self.tela.close
+
+    def alterar_cliente(self, dados_cliente: dict):
         while True:
-            dados_cliente = self.tela.recebe_dados_cliente('Cadastra Cliente')
-            self.tela.quebra_linha()
-            resposta = self.verifica_se_ja_existe_cliente_com_cpf(dados_cliente['cpf'])
-            if resposta:
-                self.tela.mensagem_erro('Já existe cliente com esse cpf.')
-                break
-            else:
-                self.salva_dados_cliente(dados_cliente)
-                self.tela.mensagem("Cliente cadastrado com sucesso!")
+            self.tela = TelaMostraCliente()
+            botao, dados = self.tela.alterar(dados_cliente)
             
-            opcao = self.tela.mostra_opcoes(opcoes)
-            if opcao == 0:
+            if botao == 'bt-voltar':
                 break
+
+            try:
+                dados = self.tratar_dados(dados)          
+            
+                cliente_novo = Cliente(dados['cpf'], dados['nome'], dados['telefone'], dados['email'], dados['endereco'])
+                if botao == 'bt-concluir':
+                    try:
+                        if dados['cpf'] != dados_cliente['cpf']:
+                            self.verifica_se_ja_existe_cliente_com_cpf(dados['cpf'])
+        
+                        self.__dao.update(dados_cliente['cpf'], cliente_novo)
+                        self.tela.mensagem("Cliente atualizado com sucesso")
+                        break
+                    except DuplicatedException as e:
+                        self.tela.mensagem_erro(str(e))
+            
+            except InputError as e:
+                self.tela.mensagem_erro(e.mensagem)
+                continue
+
+
+    def remove_cliente(self, cpf: str):
+        self.__dao.remove(cpf)
+        self.tela.mensagem("Cliente removido com sucesso")
+
+    def pesquisar(self, valores = None):
+        self.tela = TelaListaCliente()
+        clientes: Cliente = []
+        texto_pesquisado = self.tela.pesquisar('Nome ou cpf:')
+
+        if texto_pesquisado:
+            for cliente in self.__dao.get_objects():
+                if texto_pesquisado.lower() in cliente.nome.lower() or texto_pesquisado.lower() in cliente.cpf.lower():
+                    clientes.append([cliente.cpf, cliente.nome,
+                                        cliente.telefone, cliente.email, cliente.endereco])
+
+            self.__pesquisa = texto_pesquisado
+            self.tela.lista_clientes(clientes, self.__pesquisa)
+            
+        else:
+            self.tela.close()
+
+    def dados_cliente(self, cliente: Cliente) -> dict:
+        dados = {
+            "cpf": cliente.cpf, 
+            "nome": cliente.nome, 
+            "telefone": cliente.telefone,
+            "email": cliente.email, 
+            "endereco": cliente.endereco
+        }
+        return dados
+
+    def tratar_dados(self, dados: dict):
+    
+        dados["cpf"] = self.formata_string(dados["cpf"])
+        dados["nome"] = self.formata_string(dados["nome"])
+        dados["telefone"] = self.formata_int(dados["telefone"], "Telefone")
+        dados["email"] = self.formata_string(dados["email"])
+        dados["endereco"] = self.formata_string(dados["endereco"])
+        return dados
+
             
     def verifica_se_ja_existe_cliente_com_cpf(self, cpf):
-        for cliente in self.__dao.get_all():
+        for cliente in self.__dao.get_objects():
             if cpf == cliente.cpf:
-                return cliente                
-        else:
-            return None
+                raise DuplicatedException(mensagem_personalizada='Já existe cliente com esse cpf.')
         
     def salva_dados_cliente(self, dados_cliente):
         self.__dao.add(Cliente(
-        dados_cliente['nome'],
         dados_cliente['cpf'],
+        dados_cliente['nome'],
         dados_cliente['telefone'],
         dados_cliente['email'],
         dados_cliente['endereco']
     ))
-        
-    def lista_clientes(self):
-        self.tela.cabecalho('Lista Clientes')
-
-        for cliente in self.__dao.get_all():
-            self.tela.mostra_cliente({
-                'nome': cliente.nome,
-                'cpf': cliente.cpf,
-                'telefone': cliente.telefone,
-                'email': cliente.email,
-                'endereco': cliente.endereco
-            })
-            
-    def remove_cliente(self):
-        opcoes = {1: "Continuar removendo", 0: "Voltar"}
-        while True:
-            cpf = self.tela.solicita_cpf_cliente('Remove Cliente')
-            self.tela.quebra_linha()
-
-            cliente = self.verifica_se_ja_existe_cliente_com_cpf(cpf)
-            if isinstance(cliente, Cliente):
-                self.__dao.remove(cliente.cpf)
-                self.tela.mensagem("Cliente removido com sucesso") 
-            else:
-                self.tela.mensagem_erro('Cliente não encontrado!')
-                
-            opcao = self.tela.mostra_opcoes(opcoes)
-            if opcao == 0:
-                break
-            
-    def seleciona_cliente_por_cpf(self):
-    
-        cpf = self.tela.solicita_cpf_cliente('Pesquisa Cliente')
-
-        for cliente in self.__dao.get_all():
-            if cliente.cpf == cpf:
-                self.tela.mostra_cliente({
-                    'nome': cliente.nome,
-                    'cpf': cliente.cpf,
-                    'telefone': cliente.telefone,
-                    'email': cliente.email,
-                    'endereco': cliente.endereco
-                })
-                break
-        else:
-            self.tela.mensagem_erro("Nenhum cliente com este cpf cadastrado")
-
-    def altera_cliente(self):
-        opcoes = {1: "Continuar alterando", 0: "Voltar"}
-
-        while True:
-            cpf = self.tela.solicita_cpf_cliente('Altera Cliente')
-
-            cliente = self.verifica_se_ja_existe_cliente_com_cpf(cpf)
-            
-            if isinstance(cliente, Cliente):
-
-                dados_atualizados = self.tela.alteracao_cliente({
-                    'nome': cliente.nome,
-                    'cpf': cliente.cpf,
-                    'telefone': cliente.telefone,
-                    'email': cliente.email,
-                    'endereco': cliente.endereco
-                })
-                resposta = self.verifica_se_ja_existe_cliente_com_cpf(dados_atualizados['cpf'])
-                
-                if cliente.cpf == dados_atualizados['cpf'] or resposta is None:
-
-                    self.__dao.remove(cliente.cpf)
-                    self.__dao.add(Cliente(
-                        dados_atualizados['nome'],
-                        dados_atualizados['cpf'],
-                        dados_atualizados['telefone'],
-                        dados_atualizados['email'],
-                        dados_atualizados['endereco']
-                    ))
-                    
-                    self.tela.mensagem("Alterações realizadas com sucesso") 
-                    
-                else:
-                    self.tela.mensagem_erro('Esse cpf já existe. Tente novamente!')
-                    break
-            else:
-                self.tela.mensagem_erro('Cliente não encontrado!')
-                break
-            opcao = self.tela.mostra_opcoes(opcoes)
-            if opcao == 0:
-                break
