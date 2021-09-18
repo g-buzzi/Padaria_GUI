@@ -37,33 +37,3 @@ class ControladorCentral(Controlador):
                 quit()
             else:
                 switcher[botao]().inicia()
-
-    @property
-    def controlador_ingredientes(self):
-        return self.__controlador_ingredientes
-    
-    @property
-    def controlador_receitas(self):
-        return self.__controlador_receitas
-
-    @property
-    def controlador_produtos(self):
-        return self.__controlador_produtos
-
-    @property
-    def controlador_estoque(self):
-        return self.__controlador_estoque
-    
-    @property
-    def controlador_funcionarios(self):
-        return self.__controlador_funcionarios
-    
-    @property
-    def controlador_clientes(self):
-        return self.__controlador_clientes
-      
-    @property
-    def controlador_vendas(self):
-        return self.__controlador_vendas
-
-
