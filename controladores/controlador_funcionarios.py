@@ -9,12 +9,17 @@ from excecoes.empty_field import EmptyFieldError
 
 
 class ControladorFuncionarios(Controlador):
-    instancia = None
+ 
+    __instancia = None
 
-    def __init__(self, controlador_central):
+    def __new__(cls):
+        if ControladorFuncionarios.__instancia is None:
+            ControladorFuncionarios.__instancia = object.__new__(cls)
+        return ControladorFuncionarios.__instancia
+
+    def __init__(self):
         super().__init__(TelaListaFuncionario())
         self.__dao = FuncionarioDao()
-        self.__controlador_central = controlador_central
         self.__pesquisa = False
 
     def inicia(self):

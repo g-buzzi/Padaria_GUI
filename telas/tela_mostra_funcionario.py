@@ -2,12 +2,12 @@ from telas.tela_abstrata import Tela
 from collections import defaultdict
 
 class TelaMostraFuncionario(Tela):
-    instancia = None
+    __instancia = None
 
     def __new__(cls):
-        if TelaMostraFuncionario.instancia is None:
-            TelaMostraFuncionario.instancia = super().__new__(cls)
-        return TelaMostraFuncionario.instancia
+        if TelaMostraFuncionario.__instancia is None:
+            TelaMostraFuncionario.__instancia = object.__new__(cls)
+        return TelaMostraFuncionario.__instancia
 
     def __init__(self):
         super().__init__()
