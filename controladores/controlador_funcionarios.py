@@ -5,6 +5,7 @@ from DAOs.funcionario_dao import FuncionarioDao
 
 
 class ControladorFuncionarios(Controlador):
+    instancia = None
 
     def __init__(self, controlador_central):
         super().__init__(TelaFuncionario(self))

@@ -15,16 +15,16 @@ class TelaMostraIngrediente(Tela):
 
     def campos(self, dados_ingrediente = defaultdict(lambda: None), unidades_medida = list(), leitura = False):
 
-        lb_codigo = self.label("Código: ", tamanho=(17,1))
+        lb_codigo = self.label("Código:", tamanho=(17,1))
         in_codigo = self.entrada("codigo", dados_ingrediente["codigo"], leitura= leitura, tamanho= (33, 1))
 
-        lb_nome = self.label("Nome: ", tamanho=(17,1))
+        lb_nome = self.label("Nome:", tamanho=(17,1))
         in_nome = self.entrada("nome", dados_ingrediente["nome"], leitura= leitura, tamanho= (33, 1))
 
-        lb_unidade = self.label("Unidade de Medida: ", tamanho=(17,1))
+        lb_unidade = self.label("Unidade de Medida:", tamanho=(17,1))
         in_unidade = self.seletor("unidade_medida", valores= unidades_medida, valor_selecionado= dados_ingrediente["unidade_medida"], leitura= leitura, tamanho= (30, 1))
 
-        lb_preco = self.label("Preço Unitário: ", tamanho=(17,1))
+        lb_preco = self.label("Preço Unitário:", tamanho=(17,1))
         in_preco = self.entrada("preco_unitario", dados_ingrediente["preco_unitario"], leitura = leitura, tamanho= (33, 1))
 
         campos = [[lb_codigo, in_codigo],
@@ -48,7 +48,7 @@ class TelaMostraIngrediente(Tela):
         return self.read()
 
     def cadastra(self, dados_ingrediente = defaultdict(lambda: None), unidades_medida = list()):
-        titulo = self.titulo("Cadastra")
+        titulo = self.titulo("Cadastrar Ingrediente")
         campos = self.campos(dados_ingrediente, unidades_medida)
         altera = self.botao("Cadastrar", "cadastra")
         voltar = self.botao("Voltar", "volta")

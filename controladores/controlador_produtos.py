@@ -1,18 +1,26 @@
-from excecoes.duplicated_exception import DuplicatedException
-from excecoes.not_found_exception import NotFoundException
+from controladores.controlador_abstrato import Controlador
+from entidades.produto import Produto
 from telas.tela_lista_produto import TelaListaProduto
 from telas.tela_mostra_produto import TelaMostraProduto
-from controladores.controlador_abstrato import Controlador
-from collections import defaultdict
-from entidades.produto import Produto
 from DAOs.dao_produto import ProdutoDAO
+import controladores.controlador_receitas
+from excecoes.duplicated_exception import DuplicatedException
+from excecoes.not_found_exception import NotFoundException
 from excecoes.input_error import InputError
+from collections import defaultdict
+import textwrap
 
 class ControladorProdutos(Controlador):
-    def __init__(self, controlador_central: Controlador):
+    instancia = None
+
+    def __new__(cls):
+        if cls.instancia is None:
+            cls.instancia = super().__new__(cls)
+        return cls.instancia
+
+    def __init__(self):
         super().__init__(TelaListaProduto())
         self.__dao = ProdutoDAO()
-        self.__controlador_central = controlador_central
         self.__pesquisa = False
 
 #============================================ Listar Produtos =============================
@@ -54,7 +62,7 @@ class ControladorProdutos(Controlador):
             if botao == "volta":
                 break
             elif botao == "seleciona_receita":
-                dados_receita = self.__controlador_central.controlador_receitas.seleciona_receita()
+                dados_receita = controladores.controlador_receitas.ControladorReceitas().seleciona_receita()
                 if dados_receita is not None:
                     dados_produto["codigo_receita"] = dados_receita["codigo"]
             else:
@@ -72,7 +80,7 @@ class ControladorProdutos(Controlador):
                     continue
                 if dados_produto["codigo_receita"] is not False:
                     try:
-                        receita = self.__controlador_central.controlador_receitas.seleciona_receita_por_codigo(dados_produto["codigo_receita"])
+                        receita = controladores.controlador_receitas.ControladorReceitas().seleciona_receita_por_codigo(dados_produto["codigo_receita"])
                     except NotFoundException as e:
                         self.tela.mensagem_erro(str(e))
                 else:
@@ -85,7 +93,7 @@ class ControladorProdutos(Controlador):
                     produto = Produto(dados_produto["codigo"], dados_produto["nome"], dados_produto["preco_venda"], dados_produto["descricao"], receita)
                     if receita is not False:
                         try:
-                            self.__controlador_central.controlador_receitas.associar_produto_receita(receita, produto)
+                            controladores.controlador_receitas.ControladorReceitas().associar_produto_receita(receita, produto)
                         except DuplicatedException as e:
                             self.tela.mensagem_erro(str(e))
                             continue
@@ -119,9 +127,13 @@ class ControladorProdutos(Controlador):
         dados = self.dados_produto(produto)
         while True:
             botao, dados = self.tela.altera(dados)
-            if botao == "volta":
+            if botao == "cancela":
                 self.tela.close()
                 break
+            elif botao == "seleciona_receita":
+                dados_receita = controladores.controlador_receitas.ControladorReceitas().seleciona_receita()
+                if dados_receita is not None:
+                    dados["codigo_receita"] = dados_receita["codigo"]
             else:
                 if self.altera(produto, dados):
                     self.tela.mensagem("Alterações realizadas com sucesso")
@@ -148,7 +160,7 @@ class ControladorProdutos(Controlador):
             receita = False
         else:
             try:
-                receita = self.__controlador_central.controlador_receitas.seleciona_receita_por_codigo(dados["codigo_receita"])
+                receita = controladores.controlador_receitas.ControladorReceitas().seleciona_receita_por_codigo(dados["codigo_receita"])
             except NotFoundException as e:
                 self.tela.mensagem_erro(str(e))
                 return False
@@ -161,10 +173,10 @@ class ControladorProdutos(Controlador):
         produto.preco_venda = dados["preco_venda"]
         produto.descricao = dados["descricao"]
         if produto.receita is not False:
-            self.__controlador_central.controlador_receitas.remover_produto_associado(produto.receita)
+            controladores.controlador_receitas.ControladorReceitas().remover_produto_associado(produto.receita)
         produto.receita = receita
         if receita is not False:
-            self.__controlador_central.controlador_receitas.associar_produto_receita(receita, produto)
+            controladores.controlador_receitas.ControladorReceitas().associar_produto_receita(receita, produto)
         self.__dao.alter(produto, codigo_antigo)
         return True
 
@@ -172,7 +184,7 @@ class ControladorProdutos(Controlador):
     def remove(self, produto: Produto):
         self.__dao.remove(produto)
         if produto.receita is not False:
-            self.__controlador_central.controlador_receitas.remover_produto_associado(produto.receita)
+            controladores.controlador_receitas.ControladorReceitas().remover_produto_associado(produto.receita)
 
 
  #============================================ Lidar com os dados =============================
@@ -201,11 +213,12 @@ class ControladorProdutos(Controlador):
             dados_produto = []
             dados_produto.append(produto.codigo)
             dados_produto.append(produto.nome)
+            dados_produto.append(textwrap.shorten(produto.descricao, 20, placeholder=" ..."))
             if produto.receita:
-                dados_produto.append(produto.custo_unitario)
+                dados_produto.append("R$ {:.2f}".format(produto.custo_unitario))
             else:
-                dados_produto.append("--")
-            dados_produto.append(produto.preco_venda)
+                dados_produto.append("----")
+            dados_produto.append("R$ {:.2f}".format(produto.preco_venda))
             dados.append(dados_produto)
         return dados
 
@@ -227,15 +240,38 @@ class ControladorProdutos(Controlador):
                 dados_produto = []
                 dados_produto.append(produto.codigo)
                 dados_produto.append(produto.nome)
-                dados_produto.append(produto.preco_venda)
+                dados_produto.append(textwrap.shorten(produto.descricao, 20, placeholder=" ..."))
                 if produto.receita:
-                    dados_produto.append(produto.custo_unitario)
+                    dados_produto.append("R$ {:.2f}".format(produto.custo_unitario))
                 else:
-                    dados_produto.append("--")
+                    dados_produto.append("----")
+                dados_produto.append("R$ {:.2f}".format(produto.preco_venda))
                 dados.append(dados_produto)
         return dados
 
 #============================================ Contato externo =============================
+
+    @property
+    def produtos(self):
+        return self.__dao.get_objects()
+
+    def producao(self, produto: Produto):
+        self.__dao.producao(produto)
+
+    def alteracao_estoque(self, produto: Produto):
+        self.__dao.add(produto)
+
+    def seleciona_produto(self) -> dict:
+        self.tela = TelaListaProduto()
+        lista = self.dados_produtos()
+        posicao = self.tela.seleciona_produto(lista)
+        if posicao is None:
+            return None
+        try:
+            produto = self.__dao.get(lista[posicao][0])
+            return self.dados_produto(produto)
+        except NotFoundException:
+            return None
             
     def seleciona_produto_por_codigo(self, codigo: int):
         return self.__dao.get(codigo)

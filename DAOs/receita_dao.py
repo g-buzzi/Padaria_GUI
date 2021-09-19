@@ -1,6 +1,6 @@
-from DAOs.dao_produto import ProdutoDAO
 from DAOs.dao_abstrato import DAO
 from entidades.receita import Receita
+from DAOs.dao_produto import ProdutoDAO
 from excecoes.not_found_exception import NotFoundException
 
 class ReceitaDAO(DAO):

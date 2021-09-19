@@ -1,7 +1,7 @@
 from DAOs.dao_abstrato import DAO
 from entidades.ingrediente import Ingrediente
-from excecoes.not_found_exception import NotFoundException
 from DAOs.receita_dao import ReceitaDAO
+from excecoes.not_found_exception import NotFoundException
 
 class IngredienteDAO(DAO):
     instancia = None
@@ -35,8 +35,8 @@ class IngredienteDAO(DAO):
 
     def alter(self, ingrediente: Ingrediente, codigo_antigo: int):
         if isinstance(ingrediente, Ingrediente) and isinstance(codigo_antigo, int):
-            super().alter(codigo_antigo, ingrediente.codigo, ingrediente)
             ReceitaDAO().update_ingredientes(ingrediente, codigo_antigo)
+            super().alter(codigo_antigo, ingrediente.codigo, ingrediente)
 
                 
 

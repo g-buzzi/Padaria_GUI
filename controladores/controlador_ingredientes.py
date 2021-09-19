@@ -1,19 +1,22 @@
-from excecoes.not_found_exception import NotFoundException
-from PySimpleGUI.PySimpleGUI import No
-from excecoes.input_error import InputError
+from controladores.controlador_abstrato import Controlador
+from entidades.ingrediente import Ingrediente
 from telas.tela_mostra_ingrediente import TelaMostraIngrediente
 from telas.tela_lista_ingrediente import TelaListaIngrediente
-from controladores.controlador_abstrato import Controlador
 from DAOs.dao_ingrediente import IngredienteDAO
-from entidades.ingrediente import Ingrediente
-
-
+from excecoes.not_found_exception import NotFoundException
+from excecoes.input_error import InputError
 
 class ControladorIngredientes(Controlador):
-    def __init__(self, controlador_central):
+    instancia = None
+
+    def __new__(cls):
+        if cls.instancia is None:
+            cls.instancia = super().__new__(cls)
+        return cls.instancia
+
+    def __init__(self):
         super().__init__(TelaListaIngrediente())
         self.__dao = IngredienteDAO()
-        self.__controlador_central = controlador_central
         self.__lista = []
         self.__pesquisa = False
 
@@ -154,7 +157,10 @@ class ControladorIngredientes(Controlador):
     def dados_ingredientes(self):
         dados = []
         for ingrediente in self.__dao.get_objects():
-            dados.append([ingrediente.codigo, ingrediente.nome, ingrediente.unidade_medida, "{:.2f}".format(ingrediente.preco_unitario)])
+            dados.append([ingrediente.codigo, 
+                          ingrediente.nome,
+                          ingrediente.unidade_medida,
+                          "R$ {:.2f}".format(ingrediente.preco_unitario)])
         return dados
 
     def dados_ingrediente(self, ingrediente: Ingrediente) -> dict:
@@ -165,7 +171,10 @@ class ControladorIngredientes(Controlador):
         dados = []
         for ingrediente in self.__dao.get_objects():
             if pesquisa.lower() in ingrediente.nome.lower():
-                dados.append([ingrediente.codigo, ingrediente.nome, ingrediente.unidade_medida, "{:.2f}".format(ingrediente.preco_unitario)])
+                dados.append([ingrediente.codigo, 
+                            ingrediente.nome,
+                            ingrediente.unidade_medida,
+                            "R$ {:.2f}".format(ingrediente.preco_unitario)])
         return dados
 
     def tratar_dados(self, dados: dict):
@@ -186,6 +195,13 @@ class ControladorIngredientes(Controlador):
         return unidades
 
 #============================================ Contato externo =============================
+
+    @property
+    def ingredientes(self):
+        return self.__dao.get_objects()
+
+    def alteracao_estoque(self, ingrediente):
+        self.__dao.alter(ingrediente, ingrediente.codigo)
 
     def seleciona_ingrediente(self) -> dict:
         self.tela = TelaListaIngrediente()

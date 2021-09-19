@@ -17,24 +17,24 @@ class TelaMostraReceita(Tela):
         titulo = self.titulo("Receita")
 
         lb_codigo = self.label("Código:", tamanho= (17,1))
-        in_codigo = self.entrada("codigo", dados["codigo"], True, tamanho=(38,1))
+        in_codigo = self.entrada("codigo", dados["codigo"], True, tamanho=(33,1))
 
         lb_produto = self.label("Produto:", tamanho=(17,1))
-        in_produto = self.entrada("produto", dados["produto_associado"], True, tamanho=(38,1))
+        in_produto = self.entrada("produto", dados["produto_associado"], True, tamanho=(33,1))
 
         lb_tempo_preparo = self.label("Tempo de preparo:", tamanho=(17,1))
-        in_tempo_preparo = self.entrada("tempo_preparo", dados["tempo_preparo"], True, tamanho=(38,1))
+        in_tempo_preparo = self.entrada("tempo_preparo", dados["tempo_preparo"], True, tamanho=(33,1))
 
         lb_rendimento = self.label("Rendimento:", tamanho=(17,1))
-        in_rendimento = self.entrada("rendimento", dados["rendimento"], True, tamanho=(38,1))
+        in_rendimento = self.entrada("rendimento", dados["rendimento"], True, tamanho=(33,1))
 
         lb_custo_preparo = self.label("Custo de preparo:", tamanho=(17,1))
-        in_custo_preparo = self.entrada("custo_preparo", dados["custo_preparo"], True, tamanho=(38,1))
+        in_custo_preparo = self.entrada("custo_preparo", dados["custo_preparo"], True, tamanho=(33,1))
 
-        lb_modo_preparo = self.label("Modo de preparo:", tamanho=(55,1))
-        in_modo_preparo = self.textarea("modo_preparo", dados["modo_preparo"], True)
+        lb_modo_preparo = self.label("Modo de preparo:", tamanho=(46,1))
+        in_modo_preparo = self.textarea("modo_preparo", dados["modo_preparo"], True, tamanho=(46, 10))
 
-        lb_ingredientes_receita = self.label("Ingredientes:", tamanho=(55,1))
+        lb_ingredientes_receita = self.label("Ingredientes:", tamanho=(46,1))
         in_ingredientes_receita = self.lista(["Código", "Nome", "Quantidade", "Unidade de Medida"], dados["ingredientes_receita"], n_linhas= 5)
 
         bt_alterar = self.botao("Alterar", "alterar")
@@ -67,14 +67,14 @@ class TelaMostraReceita(Tela):
         lb_rendimento = self.label("Rendimento:", tamanho=(17,1))
         in_rendimento = self.entrada("rendimento", dados["rendimento"], tamanho=(33,1))
 
-        lb_modo_preparo = self.label("Modo de preparo: ", tamanho=(50, 1))
-        in_modo_preparo = self.textarea("modo_preparo", dados["modo_preparo"])
+        lb_modo_preparo = self.label("Modo de preparo: ", tamanho=(46, 1))
+        in_modo_preparo = self.textarea("modo_preparo", dados["modo_preparo"], tamanho=(46,10))
 
-        lb_ingredientes_receita = self.label("Ingredientes:", tamanho=(50,1))
-        in_ingredientes_receita = self.lista(["Código", "Nome", "Quantidade", "Unidade de Medida"], dados["ingredientes_receita"], n_linhas= 5)
+        lb_ingredientes_receita = self.label("Ingredientes:", tamanho=(46,1))
+        in_ingredientes_receita = self.lista(["Código", "Nome", "Quantidade", "Unidade de Medida"], dados["ingredientes_receita"], n_linhas= 5, padding=(1,1))
 
-        bt_adicionar_ingrediente = self.botao("Adicionar", "adicionar_ingrediente", padding=(0, 1), expand_x= True)
-        bt_remover_ingrediente = self.botao("Remover", "remover_ingrediente", padding=(0, 1), expand_x= True)
+        bt_adicionar_ingrediente = self.botao("Adicionar", "adicionar_ingrediente", padding=((1, 0), (1, 3)), expand_x= True)
+        bt_remover_ingrediente = self.botao("Remover", "remover_ingrediente", padding=((0, 1), (1, 3)), expand_x= True)
 
         campos = [[lb_codigo, in_codigo],
                  [lb_tempo_preparo, in_tempo_preparo],
@@ -87,7 +87,7 @@ class TelaMostraReceita(Tela):
         return campos
 
     def cadastra(self, dados = defaultdict(lambda: None)):
-        titulo = self.titulo("Cadastrar")
+        titulo = self.titulo("Cadastrar Receita")
         campos = self.campos(dados)
         bt_cadastrar = self.botao("Cadastrar", "cadastrar", tamanho=(23, 1), padding= (2.5, 2))
         bt_voltar = self.botao("Voltar", "voltar", tamanho=(23, 1), padding= (2.5, 2))
@@ -97,10 +97,10 @@ class TelaMostraReceita(Tela):
         return self.read()
 
     def altera(self, dados):
-        titulo = self.titulo("Alterar")
+        titulo = self.titulo("Alterar Receita")
         campos = self.campos(dados)
-        bt_alterar = self.botao("Alterar", "alterar")
-        bt_cancelar = self.botao("cancelar", "cancelar")
+        bt_alterar = self.botao("Alterar", "alterar", tamanho=(23, 1), padding= (2.5, 2))
+        bt_cancelar = self.botao("cancelar", "cancelar", tamanho=(23, 1), padding= (2.5, 2))
 
         layout = [[titulo], campos, [bt_alterar, bt_cancelar]]
         self.window = self.janela(layout)

@@ -4,6 +4,8 @@ from PySimpleGUI.PySimpleGUI import BUTTON_TYPE_READ_FORM, WIN_CLOSED
 from excecoes.window_closed import WindowClosed
 import PySimpleGUI as sg
 
+sg.InputText()
+
 class Tela(ABC):
 
     @abstractmethod
@@ -54,7 +56,7 @@ class Tela(ABC):
         sg.theme("Padaria")
 
     def janela(self, layout, titulo = "Padaria Elsecall", background = None, justificacao = "center"):
-        janela = sg.Window(titulo, layout= layout, margins=(0,0), resizable= True, finalize= True, element_justification = justificacao, background_color= background, use_custom_titlebar = True) 
+        janela = sg.Window(titulo, layout= layout, margins=(0,0), resizable= True, finalize= True, element_justification = justificacao, background_color= background, use_custom_titlebar = True, titlebar_icon= "./telas/icon.png") 
         return janela
 
     def popup(self, layout, titulo="Mensagem", tamanho = (None, None), keyboard_events = True):
@@ -86,17 +88,17 @@ class Tela(ABC):
                               pad = padding, size= tamanho, auto_size_button= auto_size)
         return botao
 
-    def label(self, texto = "", tamanho = (None, None), justification = "left", padding = (None, None)):
+    def label(self, texto = "", tamanho = (17, 1), justification = "left", padding = (1, 1)):
         label = sg.Text(texto, font="Arial 10 bold", size= tamanho, justification= justification, pad= padding)
         return label
 
-    def entrada(self, chave, valor = "", leitura = False, tamanho = (None, None), expand_x = False, padding = (None, None)):
+    def entrada(self, chave, valor = "", leitura = False, tamanho = (33, 1), expand_x = False, padding = (1, 1)):
         if tamanho != (None, None):
             expand_x = False
         entrada = sg.InputText(default_text = valor, key= chave, size= tamanho, readonly = leitura, disabled_readonly_background_color= "#FFEDB7", disabled_readonly_text_color= "#3A312C", border_width=0, expand_x = expand_x, pad= padding)
         return entrada
 
-    def textarea(self, chave, valor = "", leitura = False, tamanho = (55, 10)):
+    def textarea(self, chave, valor = "", leitura = False, tamanho = (46, 10)):
         if leitura:
             area = sg.Text(valor, size= tamanho, key= chave, border_width= 0.5, relief= sg.RELIEF_SOLID)
         else:
@@ -105,12 +107,12 @@ class Tela(ABC):
 
     def seletor(self, chave, valores = [], valor_selecionado = None, tamanho = (None, None), leitura = False):
         if leitura:
-            seletor = sg.Text(valor_selecionado, size= tamanho, key= chave, border_width= 0, pad=(0,0))
+            seletor = sg.Text(valor_selecionado, size= tamanho, key= chave, border_width= 0, pad=(1,1))
         else:
             seletor = sg.Combo(valores, valor_selecionado, key= chave, size = tamanho, disabled= leitura)
         return seletor
 
-    def radio(id_grupo, texto, chave, selecionado = False, tamanho = (None, None), leitura = False):
+    def radio(self, id_grupo, texto, chave, selecionado = False, tamanho = (None, None), leitura = False):
         radio = sg.Radio(texto, id_grupo, key = id_grupo + "_" + chave, default = selecionado, size = tamanho, circle_color= "#FCAA7D", disabled= leitura) 
         return radio
 
@@ -142,14 +144,14 @@ class Tela(ABC):
             pesquisa = None
         return pesquisa
 
-    def lista(self, heading = [], valores = [], chave = "lista", auto_size = True, n_linhas = 10):
+    def lista(self, heading = [], valores = [], chave = "lista", auto_size = True, n_linhas = 10, padding = (0,0)):
         if len(valores) == 0:
             auto_size = False
         tabela = sg.Table(valores, heading, key= chave,
                           expand_x = True, expand_y= True,
                           header_text_color= "#FC9326",
                           header_background_color= "#3A312C",
-                          pad=(0,0), justification= "center",
+                          pad= padding, justification= "center",
                           auto_size_columns= auto_size,
                           num_rows= n_linhas)
         return tabela
@@ -170,15 +172,15 @@ class Tela(ABC):
 
     def mensagem(self, mensagem: str):
         mensagem = textwrap.fill(mensagem, width = 50)
-        texto = self.label(mensagem,  justification= "center", padding=(5,2))
+        texto = self.label(mensagem,  justification= "center", padding=(5,2), tamanho=(None, None))
         botao = self.botao("Ok", "ok",tamanho=(10,1), padding=(2,5))
         layout = [[texto], [botao]]
         self.popup(layout, "Mensagem").read(close=True)
 
     def mensagem_erro(self, mensagem: str):
         mensagem = textwrap.fill(mensagem, width = 50)
-        texto = self.label(mensagem, justification="center", padding= (5, 2))
-        botao = botao = sg.Button(button_text = "Ok", key = "ok", 
+        texto = self.label(mensagem, justification="center", padding= (5, 2), tamanho=(None, None))
+        botao = sg.Button(button_text = "Ok", key = "ok", 
                               button_color=("#3A312C", "#FC9326"), 
                               pad = (2,5), size= (10,1))
         layout = [[texto], [botao]]

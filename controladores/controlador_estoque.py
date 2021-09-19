@@ -1,193 +1,273 @@
-from typing import DefaultDict
-from entidades.venda import Venda
-from entidades.movimentacao import Movimentacao
 from controladores.controlador_abstrato import Controlador
-from telas.tela_estoque import TelaEstoque
-from datetime import datetime
-from entidades.estoque import Estoque
+from entidades.movimentacao import Movimentacao
+from entidades.venda import Venda
+from telas.tela_menu_estoque import TelaMenuEstoque
+from telas.tela_lista_estoque import TelaListaEstoque
+from telas.tela_mostra_estoque import TelaMostraEstoque
+from DAOs.dao_estoque import EstoqueDAO
+from controladores.controlador_ingredientes import ControladorIngredientes
+from controladores.controlador_produtos import ControladorProdutos
+from excecoes.not_found_exception import NotFoundException
+from excecoes.input_error import InputError
 from collections import defaultdict
 
 class ControladorEstoque(Controlador):
-    def __init__(self, controlador_central):
-        super().__init__(TelaEstoque(self))
-        self.__estoque = Estoque()
-        self.__controlador_central = controlador_central
+    instancia = None
+
+    def __new__(cls):
+        if cls.instancia is None:
+            cls.instancia = super().__new__(cls)
+        return cls.instancia
+
+    def __init__(self):
+        super().__init__(TelaMenuEstoque())
+        self.__dao = EstoqueDAO()
+
+#============================================ Shorthands =============================
 
     @property
     def estoque(self):
-        return self.__estoque
+        return self.__dao.get()
 
     @property
     def produtos_estoque(self):
-        return self.__controlador_central.controlador_produtos.produtos
+        return ControladorProdutos().produtos
 
     @property
     def ingredientes_estoque(self):
-        return self.__controlador_central.controlador_ingredientes.ingredientes
+        return ControladorIngredientes().ingredientes
+
+#============================================ Menu =============================
 
     def abre_tela_inicial(self):
-        opcoes = {1: "Compra", 2: "Produção", 3: "Baixa", 4: "Listar estoque", 5: "Movimentações", 0: "Voltar"}
-        switcher = {1: self.realiza_compra, 2: self.realiza_producao, 3: self.realiza_baixa, 4: self.lista_estoque, 5: self.lista_movimentacoes, 0: False}
+        switcher = {"ingredientes": self.lista_estoque_ingredientes, "produtos": self.lista_estoque_produtos, "movimentacoes": self.lista_movimentacoes, "volta": False}
         while True:
-            opcao = self.tela.mostra_opcoes(opcoes, "--------- Estoque ---------")
-            funcao_escolhida = switcher[opcao]
-            if funcao_escolhida:
+            self.tela = TelaMenuEstoque()
+            botao, values = self.tela.menu_estoque()
+            funcao_escolhida = switcher[botao]
+            self.tela.close()
+            if funcao_escolhida is not False:
                 funcao_escolhida()
             else:
                 break
 
-    def processa_venda(self, venda: Venda):
-        venda_organizada = self.possibilidade_venda(venda)
-        for produto, quantidade in venda_organizada.items():
-            self.__estoque.venda(produto, quantidade)
-                
+#============================================ Listar Estocados =============================
 
-    def possibilidade_venda(self, venda: Venda):
-        produtos = defaultdict(lambda: 0)
-        for item in venda.itens:
-            produtos[item.produto] += item.quantidade
-        for produto, quantidade in produtos.items():
-            if produto.quantidade_estoque < quantidade:
-                self.tela.mensagem_erro("Quantidade insuficente de {} no estoque".format(produto.nome))
-                raise ValueError
-        return produtos
+    def lista_estoque_ingredientes(self):
+        self.tela = TelaListaEstoque()
+        while True:
+            estocados = self.dados_estocados(self.ingredientes_estoque, unidade_medida= True)
+            botao, values = self.tela.lista_estocados(estocados, "Ingrediente")
+            if botao == "volta":
+                self.tela.close()
+                break
+
+    def lista_estoque_produtos(self):
+        self.tela = TelaListaEstoque()
+        while True:
+            estocados = self.dados_estocados(self.produtos_estoque)
+            botao, values = self.tela.lista_estocados(estocados, "Produto")
+            if botao == "volta":
+                self.tela.close()
+                break
         
-        
 
-
-    def lista_estoque(self):
-        self.tela.cabecalho("Lista do Estoque")
-        self.lista_produtos()
-        self.lista_ingredientes()
-        self.tela.balanco(self.__estoque.balanco)
-
-    def lista_ingredientes(self):
-        self.tela.cabecalho("Ingredientes")
-        self.tela.cabecalho_estoque("Ingrediente")
-        for ingrediente in self.ingredientes_estoque.values():
-            self.mostra_estoque(ingrediente)
-        self.tela.quebra_linha()
-
-    def lista_produtos(self):
-        self.tela.cabecalho("Produtos")
-        self.tela.cabecalho_estoque("Produto")
-        for produto in self.produtos_estoque.values():
-            self.mostra_estoque(produto)
-        self.tela.quebra_linha()
+#============================================ Movimentações =============================
 
     def lista_movimentacoes(self):
-        self.tela.cabecalho("Movimentações")
-        for movimentacao in self.__estoque.movimentacoes:
-            dados = self.dados_movimentacao(movimentacao)
-            self.tela.mostra_movimentacao(dados)
+        switcher = {"compra": self.realiza_compra, "producao": self.realiza_producao, "baixa": self.realiza_baixa, "volta": False}
+        while True:
+            self.tela = TelaListaEstoque()
+            dados = self.dados_movimentacoes()
+            botao, values = self.tela.lista_movimentacoes(dados, self.estoque.balanco)
+            funcao = switcher[botao]
+            self.tela.close()
+            if funcao is False:
+                break
+            else:
+                funcao()
 
     def realiza_compra(self):
-        opcoes = {1: "Continuar compras", 0: "Voltar"}
+        self.tela = TelaMostraEstoque()
+        dados = defaultdict(lambda: None)
         while True:
-            self.tela.cabecalho("Compra")
-            codigo_ingrediente = self.tela.le_codigo("ingrediente")
-            try:
-                ingrediente = self.ingredientes_estoque[codigo_ingrediente]
-            except KeyError:
-                self.tela.mensagem_erro("Não existe ingrediente com este código")
-            else:
-                self.__controlador_central.controlador_ingredientes.mostra_ingrediente(ingrediente)
-                quantidade = self.tela.le_quantidade()
-                if quantidade != 0:
-                    self.__estoque.compra(ingrediente, quantidade)
-                    self.tela.mensagem("Compra registrada com sucesso")
+            self.tela.close()
+            botao, dados = self.tela.compra(dados)
+            if botao == "seleciona":
+                try:
+                    dados["codigo"] = ControladorIngredientes().seleciona_ingrediente()["codigo"]
+                except TypeError:
+                    pass
+                continue
+            elif botao == "compra":
+                try:
+                    dados = self.trata_dados(dados)
+                except InputError as e:
+                    self.tela.mensagem_erro(e.mensagem)
+                    continue
+                try:
+                    ingrediente = ControladorIngredientes().seleciona_ingrediente_por_codigo(dados["codigo"])
+                except NotFoundException as e:
+                    self.tela.mensagem_erro(str(e))
+                    continue
+                if dados["quantidade"] != 0:
+                    estoque = self.estoque
+                    estoque.compra(ingrediente, dados["quantidade"])
+                    ControladorIngredientes().alteracao_estoque(ingrediente)
+                    self.__dao.add(estoque)
+                    self.tela.mensagem("Compra cadastrada com sucesso")
+                    self.tela.close()
+                    break
                 else:
-                    self.tela.mensagem_erro("Quantidade igual a 0, compra cancelada")
-            opcao = self.tela.mostra_opcoes(opcoes)
-            if opcao == 0:
+                    self.tela.mensagem_erro("Quantidade igual a 0, compra cancelada!")
+            else:
+                self.tela.close()
                 break
 
     def realiza_producao(self):
-        opcoes = {1: "Continuar produção", 0: "Voltar"}
+        self.tela = TelaMostraEstoque()
+        dados = defaultdict(lambda: None)
         while True:
-            self.tela.cabecalho("Produção")
-            codigo_produto = self.tela.le_codigo("produto")
-            try:
-                produto = self.produtos_estoque[codigo_produto]
-            except KeyError:
-                self.tela.mensagem_erro("Não existe produto com este código")
-            else:
-                self.__controlador_central.controlador_produtos.mostra_produto(produto)
-                if produto.receita is False:
-                    self.tela.mensagem_erro("O produto não possui receita")
-                    return
-                else:
-                    quantidade = self.tela.le_quantidade()
-                    if quantidade == 0:
-                        self.tela.mensagem_erro("Quantidade igual a 0, produção cancelada")
-                        return
-                    else:
-                        for ingrediente, quantidade_ingrediente in produto.receita.ingredientes_receita.items():
-                            if ingrediente.quantidade_estoque < quantidade_ingrediente * quantidade:
+            self.tela.close()
+            botao, dados = self.tela.producao(dados)
+            if botao == "seleciona":
+                try:
+                    dados["codigo"] = ControladorProdutos().seleciona_produto()["codigo"]
+                except TypeError:
+                    pass
+                continue
+            elif botao == "producao":
+                try:
+                    dados = self.trata_dados(dados)
+                except InputError as e:
+                    self.tela.mensagem_erro(e.mensagem)
+                    continue
+                try:
+                    produto = ControladorProdutos().seleciona_produto_por_codigo(dados["codigo"])
+                except NotFoundException as e:
+                    self.tela.mensagem_erro(str(e))
+                    continue
+                if dados["quantidade"] != 0:
+                    for ingrediente, quantidade_ingrediente in produto.receita.ingredientes_receita.items():
+                            if ingrediente.quantidade_estoque < quantidade_ingrediente * dados["quantidade"]:
                                 self.tela.mensagem_erro("Ingredientes insuficientes para a produção")
                                 break 
-                        else:
-                            self.__estoque.producao(produto, quantidade)
-                            self.tela.mensagem("Produção registrada com sucesso")
-            opcao = self.tela.mostra_opcoes(opcoes)
-            if opcao == 0:
+                    else:
+                        estoque = self.estoque
+                        estoque.producao(produto, dados["quantidade"])
+                        ControladorProdutos().producao(produto)
+                        self.__dao.add(estoque)
+                        self.tela.mensagem("Produção cadastrada com sucesso")
+                        self.tela.close()
+                        break
+                else:
+                    self.tela.mensagem_erro("Quantidade igual a 0, produção cancelada")
+            else:
+                self.tela.close()
                 break
 
     def realiza_baixa(self):
-        self.tela.cabecalho("Baixa")
-        opcoes = {1: "Baixa de produto", 2: "Baixa de ingrediente", 0: "Voltar"}
-        switcher = {1: self.realiza_baixa_produto, 2: self.realiza_baixa_ingrediente, 0: False}
+        self.tela = TelaMostraEstoque()
+        dados_baixa = defaultdict(lambda: None)
+        dados_baixa["tipo_ingrediente"] = True
+        dados_baixa["tipo_produto"] = False
         while True:
-            opcao = self.tela.mostra_opcoes(opcoes)
-            if switcher[opcao] is False:
+            self.tela.close()
+            botao, dados_baixa = self.tela.baixa(dados_baixa)
+            if botao == "cancela":
+                self.tela.close()
                 break
-            switcher[opcao]()
+            if botao == "seleciona":
+                try:
+                    if dados_baixa["tipo_ingrediente"]:
+                        dados_baixa["codigo"] = ControladorIngredientes().seleciona_ingrediente()["codigo"]
+                    else:
+                        dados_baixa["codigo"] = ControladorProdutos().seleciona_produto()["codigo"]
+                except TypeError:
+                    pass
+                continue
+            try:
+                dados_baixa = self.trata_dados(dados_baixa)
+            except InputError as e:
+                self.tela.mensagem_erro(e.mensagem)
+                continue
+            if dados_baixa["tipo_ingrediente"]:
+                resultado = self.realiza_baixa_ingrediente(dados_baixa)
+            else:
+                resultado = self.realiza_baixa_produto(dados_baixa)
+            if resultado is True:
+                self.tela.close()
+                break
             
-    def realiza_baixa_ingrediente(self):
-        self.tela.cabecalho("Baixa de Ingrediente")
-        codigo_ingrediente = self.tela.le_codigo("ingrediente")
+
+    def realiza_baixa_ingrediente(self, dados_baixa):
         try:
-            ingrediente = self.ingredientes_estoque[codigo_ingrediente]
-        except KeyError:
-            self.tela.mensagem_erro("Não existe ingrediente com este código")
+            ingrediente = ControladorIngredientes().seleciona_ingrediente_por_codigo(dados_baixa["codigo"])
+        except NotFoundException as e:
+            self.tela.mensagem_erro(str(e))
         else:
-            self.__controlador_central.controlador_ingredientes.mostra_ingrediente(ingrediente)
-            quantidade = self.tela.le_quantidade()
-            if quantidade == 0:
+            if dados_baixa["quantidade"] == 0:
                 self.tela.mensagem_erro("Quantidade igual a 0, baixa cancelada")
-            elif quantidade <= ingrediente.quantidade_estoque:
-                self.__estoque.baixa(ingrediente, quantidade)
+            elif dados_baixa["quantidade"] <= ingrediente.quantidade_estoque:
+                estoque = self.estoque
+                estoque.baixa(ingrediente, dados_baixa["quantidade"])
+                self.__dao.add(estoque)
+                ControladorIngredientes().alteracao_estoque(ingrediente)
                 self.tela.mensagem("Baixa registrada com sucesso")
+                return True
             else:
                 self.tela.mensagem_erro("Baixa excede o número de ingredientes em estoque")
+        return False
 
-    def realiza_baixa_produto(self):
-        self.tela.cabecalho("Baixa de Produto")
-        codigo_produto = self.tela.le_codigo("produto")
+    def realiza_baixa_produto(self, dados_baixa):
         try:
-            produto = self.produtos_estoque[codigo_produto]
-        except KeyError:
-            self.tela.mensagem_erro("Não existe produto com este código")
+            produto = ControladorProdutos().seleciona_produto_por_codigo(dados_baixa["codigo"])
+        except NotFoundException as e:
+            self.tela.mensagem_erro(str(e))
         else:
-            self.__controlador_central.controlador_produtos.mostra_produto(produto)
-            quantidade = self.tela.le_quantidade()
-            if quantidade == 0:
+            if dados_baixa["quantidade"] == 0:
                 self.tela.mensagem_erro("Quantidade igual a 0, baixa cancelada")
-            elif quantidade <= produto.quantidade_estoque:
-                self.__estoque.baixa(produto, quantidade)
+            elif dados_baixa["quantidade"] <= produto.quantidade_estoque:
+                estoque = self.estoque
+                estoque.baixa(produto, dados_baixa["quantidade"])
+                self.__dao.add(estoque)
+                ControladorProdutos().alteracao_estoque(produto)
                 self.tela.mensagem("Baixa registrada com sucesso")
+                return True
             else:
                 self.tela.mensagem_erro("Baixa excede o número de produtos em estoque")
+            return False
 
-    def dados_estoque(self, estocado):
-        dados = {}
-        dados["nome"] = estocado.nome
-        dados["quantidade"] = estocado.quantidade_estoque
+#============================================ Lidar com dados =============================
+
+
+    def dados_estocados(self, estocados, unidade_medida = False):
+        dados = []
+        for estocado in estocados:
+            dados_estocado = [estocado.codigo]
+            dados_estocado.append(estocado.nome)
+            if unidade_medida is True:
+                dados_estocado.append("{}{}".format(estocado.quantidade_estoque, estocado.unidade_medida))
+            else:
+                dados_estocado.append(estocado.quantidade_estoque)
+            dados.append(dados_estocado)
         return dados
 
-    def mostra_estoque(self, estocado, tipo = "Produto"):
-        dados = self.dados_estoque(estocado)
-        self.tela.mostra_estoque(dados, tipo)
+    def dados_movimentacoes(self):
+        dados = []
+        for movimentacao in self.estoque.movimentacoes:
+            dados_movimentacao = [movimentacao.data.strftime("%d/%m/%Y, %H:%M:%S")]
+            dados_movimentacao.append(movimentacao.tipo)
+            dados_movimentacao.append(movimentacao.movimentado.nome)
+            dados_movimentacao.append(movimentacao.quantidade)
+            dados_movimentacao.append("R$ {:.2f}".format(movimentacao.valor_total))
+            dados.append(dados_movimentacao)
+        return dados
+
+    def trata_dados(self, dados):
+        dados["codigo"] = self.formata_int(dados["codigo"], "Código")
+        dados["quantidade"] = self.formata_int(dados["quantidade"], "Quantidade")
+        return dados
 
     def dados_movimentacao(self, movimentacao: Movimentacao):
         dados = {}
@@ -201,3 +281,25 @@ class ControladorEstoque(Controlador):
     def mostra_movimentacao(self, movimentacao: Movimentacao):
         dados = self.dados_movimentacao(movimentacao)
         self.tela.mostra_movimentacao(dados)
+
+#============================================ Contato Externo =============================
+
+    def processa_venda(self, venda: Venda):
+        venda_organizada = self.possibilidade_venda(venda)
+        for produto, quantidade in venda_organizada.items():
+            estoque = self.estoque
+            estoque.venda(produto, quantidade)
+            ControladorProdutos().alteracao_estoque(produto)
+            self.__dao.add(estoque)
+
+    def possibilidade_venda(self, venda: Venda):
+        produtos = defaultdict(lambda: 0)
+        for item in venda.itens:
+            produtos[item.produto] += item.quantidade
+        for produto, quantidade in produtos.items():
+            if produto.quantidade_estoque < quantidade:
+                self.tela.mensagem_erro("Quantidade insuficente de {} no estoque".format(produto.nome))
+                raise ValueError
+        return produtos
+
+
