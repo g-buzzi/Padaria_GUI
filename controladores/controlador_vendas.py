@@ -1,3 +1,6 @@
+from collections import defaultdict
+from entidades.item import Item
+from controladores.controlador_produtos import ControladorProdutos
 from controladores.controlador_clientes import ControladorClientes
 from excecoes.not_found_exception import NotFoundException
 from controladores.controlador_funcionarios import ControladorFuncionarios
@@ -60,30 +63,64 @@ class ControladorVendas(Controlador):
             switcher[botao](valores)
 
     def cadastra_venda(self, valores):
-        while True:
-            self.tela = TelaMostraVenda()
-            botao, tipo_escolhido = self.tela.opcoes_vendas()
+        self.tela = TelaMostraVenda()
+        dados_venda = defaultdict(lambda : None)
+        dados_venda['lista'] = []
+        itens = []
+        botao, tipo = self.tela.opcoes_vendas()
+        continue_while = True
 
-            if botao != 'bt-cancelar':
-                
-                botao_tela_cadastro, dados_venda = self.tela.cadastrar(tipo='tipo_encomenda' if tipo_escolhido['tipo_encomenda'] else 'tipo_venda')
-                if botao_tela_cadastro != 'bt-voltar':
-                    try:
-                        dados_venda = self.tratar_dados(dados_venda, tipo='tipo_encomenda' if tipo_escolhido['tipo_encomenda'] else 'tipo_venda')
-                        print('o que temos aqui', dados_venda)
-                    except InputError as e:
-                        self.tela.mensagem_erro(e.mensagem)
-                        continue
-                
-                    try:
-                        self.salva_dados_venda(dados_venda)
-                        self.tela.mensagem('Venda cadastrada com sucesso!')
-                    except DuplicatedException as e:
-                        self.tela.mensagem_erro(str(e))
-                        continue
-            
+        if botao == 'bt-cancelar':
             self.tela.close()
-            break
+
+        while botao == 'bt-ok' and continue_while:
+            botao_tela_cadastro, dados_form = self.tela.cadastrar(dados_venda, tipo='tipo_encomenda' if tipo['tipo_encomenda'] else False)
+            
+            if botao_tela_cadastro == 'bt_adicionar_item':
+           
+                item = self.adicionar_item()
+                if isinstance(item, Item):
+                    dados_venda['lista'].append([item.produto.codigo, item.produto.nome, item.quantidade, item.produto.preco_venda ])
+                    itens.append(item)
+                botao_tela_cadastro = None           
+            
+                    
+            if botao_tela_cadastro == 'bt-cadastrar':
+                try:
+                    dados_form['itens'] = itens
+                    dados_venda = self.tratar_dados(dados_form, tipo='tipo_encomenda' if tipo['tipo_encomenda'] else 'tipo_venda')
+                
+                except InputError as e:
+                    self.tela.mensagem_erro(e.mensagem)
+                    continue
+            
+                try:
+                    self.salva_dados_venda(dados_form)
+                    self.tela.mensagem('Venda cadastrada com sucesso!')
+                    self.tela.close()
+                    break
+                except DuplicatedException as e:
+                    self.tela.mensagem_erro(str(e))
+                    continue
+
+            if botao_tela_cadastro == 'bt-voltar':
+                continue_while = False
+                self.tela.close()
+                
+    
+
+    def adicionar_item(self):
+        botao, valores = self.tela.adiciona_item_venda()
+        codigo = self.formata_int(valores['codigo_produto'], 'Código')
+        if botao == 'adicionar':
+            try:
+                item = Item(ControladorProdutos().seleciona_produto_por_codigo(codigo), valores['quantidade'])
+                return item
+            except NotFoundException as e:
+                self.tela.mensagem_erro(str(e))
+            
+        # if botao == 'cancelar':
+        self.tela.close()
 
     def salva_dados_venda(self, dados_venda):
         self.__dao.add(Venda(
@@ -92,7 +129,8 @@ class ControladorVendas(Controlador):
                     dados_venda['encomenda'],
                     dados_venda['desconto'],
                     dados_venda['data_entrega'],
-                    dados_venda['cliente']
+                    dados_venda['cliente'],
+                    dados_venda['itens']
                 ))
 
     def tratar_dados(self, dados: dict, tipo=None):
@@ -102,6 +140,7 @@ class ControladorVendas(Controlador):
         dados["atendente"] = self.seleciona_atendente(dados['atendente'])
         dados["desconto"] = self.formata_float(dados["desconto"], 'Desconto')
         dados["codigo"] = self.formata_int(dados["codigo"], 'Código')
+        dados["itens"] = dados["itens"]
 
         return dados
 

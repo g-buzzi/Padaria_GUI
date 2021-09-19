@@ -73,7 +73,6 @@ class ControladorReceitas(Controlador):
 
 #============================================ Receitas individuais =============================
 
-
     def cadastrar(self, dados = None):
         switcher = {"adicionar_ingrediente": self.adiciona_ingrediente_receita, "remover_ingrediente": self.remove_ingrediente_receita}
         dados_receita = defaultdict(lambda: None)

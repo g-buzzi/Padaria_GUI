@@ -9,7 +9,7 @@ class Venda():
         self, 
         codigo: int, 
         atendente: Funcionario,
-        encomenda: bool, desconto: float, data_entrega: str, cliente: Cliente):
+        encomenda: bool, desconto: float, data_entrega: str, cliente: Cliente, itens):
         
         self.__codigo = codigo 
         self.__atendente = atendente
@@ -17,7 +17,7 @@ class Venda():
         self.__desconto = desconto
         self.__data_entrega = data_entrega
         self.__cliente = cliente
-        self.__itens: list[Item] = []
+        self.__itens = itens
         self.__entregue: bool = False
         
     
@@ -37,7 +37,7 @@ class Venda():
     def preco_final(self) -> float:
         total = 0.0
         for item in self.__itens:
-            total = total + (item.quantidade * item.produto.preco_venda)
+            total = total + (int(item.quantidade) * item.produto.preco_venda)
             
         if self.__desconto > 0:
             total = total - (total * self.__desconto/100)
