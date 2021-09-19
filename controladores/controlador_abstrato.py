@@ -46,9 +46,10 @@ class Controlador(ABC):
         except ValueError:
             raise FloatError(nome_campo)
 
-    def formata_string(self, valor: str) -> str:
+    def formata_string(self, valor: str, checar_se_vazio=True) -> str:
         valor = valor.strip()
-        self.checar_vazio(valor)
+        if checar_se_vazio:
+            self.checar_vazio(valor)
         return valor
 
     def checar_vazio(self, valor: str):

@@ -1,3 +1,10 @@
+from controladores.controlador_clientes import ControladorClientes
+from excecoes.not_found_exception import NotFoundException
+from controladores.controlador_funcionarios import ControladorFuncionarios
+from excecoes.duplicated_exception import DuplicatedException
+from excecoes.input_error import InputError
+from telas.tela_mostra_venda import TelaMostraVenda
+from telas.tela_lista_venda import TelaListaVenda
 from telas.tela_venda import TelaVenda
 from entidades.venda import Venda
 from controladores.controlador_abstrato import Controlador
@@ -8,95 +15,163 @@ from DAOs.venda_dao import VendaDao
 
 
 class ControladorVendas(Controlador):
-    def __init__(self, controlador_central: Controlador):
-        super().__init__(TelaVenda(self))
+
+    __instancia = None
+
+    def __new__(cls):
+        if ControladorVendas.__instancia is None:
+            ControladorVendas.__instancia = object.__new__(cls)
+        return ControladorVendas.__instancia
+
+    def __init__(self):
+        super().__init__(TelaListaVenda())
         self.__dao = VendaDao()
-        self.__controlador_central = controlador_central
-        self.__codigo_atual = 0
+        self.__pesquisa = False
 
-    def abre_tela_inicial(self):
-        switcher = {
-            0: False,
-            1: self.cadastra_venda,
-            2: self.lista_vendas,
-            3: self.lista_encomendas,
-            4: self.conclui_encomenda,
-            5: self.cancela_encomenda,
-            6: self.lista_vendas_por_cliente,
-            7: self.lista_vendas_por_funcionario,
-            8: self.seleciona_venda_por_codigo}
+    def inicia(self):
+        self.abre_tela_inicial()
 
-        opcoes = {
-            1: "Cadastrar Venda",
-            2: "Listar Vendas",
-            3: "Listar Encomendas",
-            4: 'Concluir Encomenda',
-            5: "Cancelar Encomenda",
-            6: 'Listar Vendas por Cliente',
-            7: 'Listar Vendas por Funcionário',
-            8: "Pesquisar Venda",
-            0: "Voltar"
-        }
+    def dados_vendas(self):
+        dados = []
+        for venda in self.__dao.get_objects():
+            dados.append([venda.codigo, venda.atendente.nome, venda.cliente.nome if isinstance(venda.cliente, Cliente) else '--', venda.encomenda, venda.preco_final])
+        return dados
 
+    def listar(self, valores = None):
+        self.__pesquisa = False
+        self.tela = TelaListaVenda()
+        self.__lista = self.dados_vendas()
+        return self.tela.lista_vendas(self.__lista, self.__pesquisa)
+
+
+    def abre_tela_inicial(self, dados=None):
+        switcher = {"cadastrar": self.cadastra_venda, 
+                    "pesquisar": self.listar, 
+                    "lista_clique_duplo": self.listar,
+                    "listar": self.listar}
+        
         while True:
-            opcao = self.tela.mostra_opcoes(opcoes, "--------- Vendas ---------")
-            funcao_escolhida = switcher[opcao]
-            if funcao_escolhida:
-                funcao_escolhida()
-            else:
+            botao, valores = self.listar()
+            
+            if botao == 'voltar':
+                self.tela.close()
                 break
 
-    def cadastra_venda(self):
-        opcoes = {1: "Continuar cadastrando venda", 0: "Voltar"}
+            switcher[botao](valores)
 
+    def cadastra_venda(self, valores):
         while True:
-            dados_venda = self.tela.recebe_dados_venda('Cadastra Venda')
+            self.tela = TelaMostraVenda()
+            botao, tipo_escolhido = self.tela.opcoes_vendas()
 
-            funcionario = self.__controlador_central.controlador_funcionarios.verifica_se_ja_existe_funcionario_com_matricula(dados_venda['atendente'])
-            if isinstance(funcionario, Funcionario):
-                dados_venda['atendente'] = funcionario
-            else:
-                self.tela.mensagem_erro('Obrigatório informar um atendente.')
-                break
+            if botao != 'bt-cancelar':
+                
+                botao_tela_cadastro, dados_venda = self.tela.cadastrar(tipo='tipo_encomenda' if tipo_escolhido['tipo_encomenda'] else 'tipo_venda')
+                if botao_tela_cadastro != 'bt-voltar':
+                    try:
+                        dados_venda = self.tratar_dados(dados_venda, tipo='tipo_encomenda' if tipo_escolhido['tipo_encomenda'] else 'tipo_venda')
+                        print('o que temos aqui', dados_venda)
+                    except InputError as e:
+                        self.tela.mensagem_erro(e.mensagem)
+                        continue
+                
+                    try:
+                        self.salva_dados_venda(dados_venda)
+                        self.tela.mensagem('Venda cadastrada com sucesso!')
+                    except DuplicatedException as e:
+                        self.tela.mensagem_erro(str(e))
+                        continue
+            
+            self.tela.close()
+            break
 
-            venda_inicializada = self.inicializa_venda(dados_venda)
-            self.tela.quebra_linha()
+    def salva_dados_venda(self, dados_venda):
+        self.__dao.add(Venda(
+                    dados_venda['codigo'],
+                    dados_venda['atendente'],
+                    dados_venda['encomenda'],
+                    dados_venda['desconto'],
+                    dados_venda['data_entrega'],
+                    dados_venda['cliente']
+                ))
 
-            if dados_venda['encomenda'] == 's':
-                dado = self.solicita_dados_encomenda(venda_inicializada)
-                if isinstance(dado, Venda):
-                    venda_inicializada = dado
-                else:
-                    self.tela.mensagem_erro('Obrigatório informar um cliente.')
-                    break
-            else:
-                data = self.solicita_cliente(venda_inicializada)
-                if isinstance(data, Venda):
-                    venda_inicializada = data
+    def tratar_dados(self, dados: dict, tipo=None):
+        dados['cliente'] = self.seleciona_cliente(dados['cliente'], tipo)
+        dados['data_entrega'] = self.formata_string(dados['data_entrega']) if tipo == 'tipo_encomenda' else None
+        dados["encomenda"] = True if tipo == 'tipo_encomenda' else False
+        dados["atendente"] = self.seleciona_atendente(dados['atendente'])
+        dados["desconto"] = self.formata_float(dados["desconto"], 'Desconto')
+        dados["codigo"] = self.formata_int(dados["codigo"], 'Código')
 
-            self.tela.quebra_linha()
+        return dados
 
-            venda_inicializada = self.solicita_itens(venda_inicializada)
+    def seleciona_atendente(self, matricula: int) -> Funcionario:
+        try:
+            matricula = self.formata_int(matricula, 'Atendente')
+            funcionario = ControladorFuncionarios().seleciona_funcionario_por_matricula(matricula)
+            return funcionario
+        except NotFoundException as e:
+            self.tela.mensagem_erro(str(e))
 
-            if isinstance(venda_inicializada, Venda) and venda_inicializada.itens:
-                venda_inicializada = self.solicita_desconto(venda_inicializada)
-            else:
-                self.tela.mensagem_erro('Cadastro de venda cancelado!')
-                break
+    def seleciona_cliente(self, cpf: str, tipo: str):
+        try:            
+            cpf = self.formata_string(cpf) if tipo == 'tipo_encomenda' else self.formata_string(cpf, checar_se_vazio=False)
+            cliente = ControladorClientes().seleciona_cliente_por_cpf(cpf)
+            return cliente if isinstance(cliente, Cliente) else None
+        except NotFoundException as e:
+            self.tela.mensagem_erro(str(e))
+    
+    # def cadastra_venda(self):
+    #     opcoes = {1: "Continuar cadastrando venda", 0: "Voltar"}
 
-            if isinstance(venda_inicializada, Venda):
-                try:
-                    if dados_venda["encomenda"] == "s":
-                        self.__controlador_central.controlador_estoque.processa_venda(venda_inicializada)
-                    self.__dao.add(venda_inicializada)
-                    self.__codigo_atual += 1
-                    self.tela.mensagem('Venda cadastrada com sucesso!')
-                except ValueError:
-                    self.tela.mensagem("Venda cancelada")
+    #     while True:
+    #         dados_venda = self.tela.recebe_dados_venda('Cadastra Venda')
 
-            opcao = self.tela.mostra_opcoes(opcoes)
-            if opcao == 0:
-                break
+    #         funcionario = self.__controlador_central.controlador_funcionarios.verifica_se_ja_existe_funcionario_com_matricula(dados_venda['atendente'])
+    #         if isinstance(funcionario, Funcionario):
+    #             dados_venda['atendente'] = funcionario
+    #         else:
+    #             self.tela.mensagem_erro('Obrigatório informar um atendente.')
+    #             break
+
+    #         venda_inicializada = self.inicializa_venda(dados_venda)
+    #         self.tela.quebra_linha()
+
+    #         if dados_venda['encomenda'] == 's':
+    #             dado = self.solicita_dados_encomenda(venda_inicializada)
+    #             if isinstance(dado, Venda):
+    #                 venda_inicializada = dado
+    #             else:
+    #                 self.tela.mensagem_erro('Obrigatório informar um cliente.')
+    #                 break
+    #         else:
+    #             data = self.solicita_cliente(venda_inicializada)
+    #             if isinstance(data, Venda):
+    #                 venda_inicializada = data
+
+    #         self.tela.quebra_linha()
+
+    #         venda_inicializada = self.solicita_itens(venda_inicializada)
+
+    #         if isinstance(venda_inicializada, Venda) and venda_inicializada.itens:
+    #             venda_inicializada = self.solicita_desconto(venda_inicializada)
+    #         else:
+    #             self.tela.mensagem_erro('Cadastro de venda cancelado!')
+    #             break
+
+    #         if isinstance(venda_inicializada, Venda):
+    #             try:
+    #                 if dados_venda["encomenda"] == "s":
+    #                     self.__controlador_central.controlador_estoque.processa_venda(venda_inicializada)
+    #                 self.__dao.add(venda_inicializada)
+    #                 self.__codigo_atual += 1
+    #                 self.tela.mensagem('Venda cadastrada com sucesso!')
+    #             except ValueError:
+    #                 self.tela.mensagem("Venda cancelada")
+
+    #         opcao = self.tela.mostra_opcoes(opcoes)
+    #         if opcao == 0:
+    #             break
 
     def solicita_cliente(self, venda: Venda):
         opcoes = {1: "Sim", 0: "Não"}

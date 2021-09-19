@@ -9,16 +9,16 @@ class Venda():
         self, 
         codigo: int, 
         atendente: Funcionario,
-        encomenda: bool):
+        encomenda: bool, desconto: float, data_entrega: str, cliente: Cliente):
         
         self.__codigo = codigo 
         self.__atendente = atendente
         self.__encomenda = encomenda
+        self.__desconto = desconto
+        self.__data_entrega = data_entrega
+        self.__cliente = cliente
         self.__itens: list[Item] = []
-        self.__desconto: float = None
-        self.__cliente: Cliente = None
-        self.__data_entrega = None
-        self.__entregue: bool = None
+        self.__entregue: bool = False
         
     
     @property
@@ -52,8 +52,8 @@ class Venda():
         self.__atendente = atendente
         
     @property
-    def encomenda(self) -> bool:
-        return self.__encomenda
+    def encomenda(self) -> str:
+        return 'Sim' if self.__encomenda else 'Não'
     
     @encomenda.setter 
     def encomenda(self, encomenda):        
