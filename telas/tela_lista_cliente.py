@@ -5,9 +5,9 @@ class TelaListaCliente(Tela):
     __instancia = None
 
     def __new__(cls):
-        if cls.__instancia is None:
-            cls.__instancia = super().__new__(cls)
-        return cls.__instancia
+        if TelaListaCliente.__instancia is None:
+            TelaListaCliente.__instancia = object.__new__(cls)
+        return TelaListaCliente.__instancia
 
     def __init__(self):
         super().__init__()
