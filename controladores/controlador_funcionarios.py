@@ -1,3 +1,4 @@
+from excecoes.not_found_exception import NotFoundException
 from excecoes.duplicated_exception import DuplicatedException
 from excecoes.input_error import InputError
 from telas.tela_mostra_funcionario import TelaMostraFuncionario
@@ -114,8 +115,8 @@ class ControladorFuncionarios(Controlador):
                 funcionario = self.__dao.get(matricula_funcionario)
                 self.tela = TelaMostraFuncionario()
                 botao, dados = self.tela.mostra(self.dados_funcionario(funcionario))
-            except IndexError:
-                return
+            except NotFoundException as e:
+                self.tela.mensagem_erro(str(e))
 
             if botao == 'remove':
                 self.remove_funcionario(matricula_funcionario)

@@ -13,7 +13,7 @@ class FuncionarioDao(DAO):
 
     def get(self, key: int):
         if isinstance(key, int):
-            return super().get(key)
+            return super().get(key, 'Funcionário')
 
     def remove(self, key: int):
         if isinstance(key, int):
