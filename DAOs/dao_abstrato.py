@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from excecoes.not_found_exception import NotFoundException
 import pickle
 
 class DAO(ABC):
@@ -19,11 +20,11 @@ class DAO(ABC):
         self._cache = pickle.load(open(self.__datasource, "rb"))
 
     @abstractmethod
-    def get(self, key):
+    def get(self, key, entity=None):
         try:
             return self._cache[key]
         except KeyError:
-            raise KeyError
+            raise NotFoundException(entidade=entity)
 
     @abstractmethod
     def add(self, key, obj):
@@ -31,21 +32,21 @@ class DAO(ABC):
         self._dump()
 
     @abstractmethod
-    def remove(self, key):
+    def remove(self, key, entity=None):
         try:
             self._cache.pop(key)
             self._dump()
         except KeyError:
-            raise KeyError
+            raise NotFoundException(entidade=entity)
 
 #    @abstractmethod
-    def alter(self, old_key, new_key, obj):
+    def alter(self, old_key, new_key, obj, entity=None):
         try:
             self._cache.pop(old_key)
             self._cache[new_key] = obj
             self._dump()
         except KeyError:
-            raise KeyError
+            raise NotFoundException(entidade=entity)
     
     def get_all(self):
         return self._cache

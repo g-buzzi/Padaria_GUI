@@ -13,7 +13,7 @@ class ClienteDao(DAO):
 
     def get(self, key: str):
         if isinstance(key, str):
-            return super().get(key)
+            return super().get(key, 'Cliente')
 
     def remove(self, key: str):
         if isinstance(key, str):

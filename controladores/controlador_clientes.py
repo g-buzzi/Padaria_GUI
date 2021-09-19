@@ -1,3 +1,4 @@
+from excecoes.not_found_exception import NotFoundException
 from excecoes.duplicated_exception import DuplicatedException
 from excecoes.input_error import InputError
 from telas.tela_mostra_cliente import TelaMostraCliente
@@ -82,8 +83,8 @@ class ControladorClientes(Controlador):
                 cliente = self.__dao.get(cpf_cliente)
                 self.tela = TelaMostraCliente()
                 botao, dados = self.tela.mostrar(self.dados_cliente(cliente))
-            except IndexError:
-                return
+            except NotFoundException as e:
+                self.tela.mensagem_erro(str(e))
 
             if botao == 'bt-remover':
                 self.remove_cliente(cpf_cliente)
