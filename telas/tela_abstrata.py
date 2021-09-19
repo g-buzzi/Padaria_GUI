@@ -56,7 +56,7 @@ class Tela(ABC):
         sg.theme("Padaria")
 
     def janela(self, layout, titulo = "Padaria Elsecall", background = None, justificacao = "center"):
-        janela = sg.Window(titulo, layout= layout, margins=(0,0), resizable= True, finalize= True, element_justification = justificacao, background_color= background, use_custom_titlebar = True, titlebar_icon= "C:/Users/Gabriel/Documents/#Faculdade/#1 - Segundo Semestre/Desenvolvimento de Sistemas Orientados a Objetos I/Padaria GUI/telas/icon.png") 
+        janela = sg.Window(titulo, layout= layout, margins=(0,0), resizable= True, finalize= True, element_justification = justificacao, background_color= background, use_custom_titlebar = True, titlebar_icon= "./telas/icon.png") 
         return janela
 
     def popup(self, layout, titulo="Mensagem", tamanho = (None, None), keyboard_events = True):
