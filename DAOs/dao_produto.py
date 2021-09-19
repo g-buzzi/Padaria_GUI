@@ -4,12 +4,12 @@ import DAOs.dao_ingrediente
 from excecoes.not_found_exception import NotFoundException
 
 class ProdutoDAO(DAO):
-    instancia = None
+    __instancia = None
 
     def __new__(cls):
-        if ProdutoDAO.instancia is None:
-            ProdutoDAO.instancia = super().__new__(cls)
-        return ProdutoDAO.instancia
+        if cls.__instancia is None:
+            cls.__instancia = object.__new__(cls)
+        return cls.__instancia
     
     def __init__(self) -> None:
         super().__init__(datasource="produtos.pkl")

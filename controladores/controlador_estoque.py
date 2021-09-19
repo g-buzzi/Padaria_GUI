@@ -12,12 +12,12 @@ from excecoes.input_error import InputError
 from collections import defaultdict
 
 class ControladorEstoque(Controlador):
-    instancia = None
+    __instancia = None
 
     def __new__(cls):
-        if cls.instancia is None:
-            cls.instancia = super().__new__(cls)
-        return cls.instancia
+        if cls.__instancia is None:
+            cls.__instancia = object.__new__(cls)
+        return cls.__instancia
 
     def __init__(self):
         super().__init__(TelaMenuEstoque())

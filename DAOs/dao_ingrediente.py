@@ -4,12 +4,12 @@ from DAOs.receita_dao import ReceitaDAO
 from excecoes.not_found_exception import NotFoundException
 
 class IngredienteDAO(DAO):
-    instancia = None
+    __instancia = None
 
     def __new__(cls):
-        if IngredienteDAO.instancia is None:
-            IngredienteDAO.instancia = super().__new__(cls)
-        return IngredienteDAO.instancia
+        if cls.__instancia is None:
+            cls.__instancia = object.__new__(cls)
+        return cls.__instancia
     
     def __init__(self) -> None:
         super().__init__(datasource="ingredientes.pkl")

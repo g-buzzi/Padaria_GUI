@@ -3,12 +3,12 @@ from telas.tela_abstrata import Tela
 from collections import defaultdict
 
 class TelaMostraReceita(Tela):
-    instancia = None
+    __instancia = None
 
     def __new__(cls):
-        if TelaMostraReceita.instancia is None:
-            TelaMostraReceita.instancia = super().__new__(cls)
-        return TelaMostraReceita.instancia
+        if cls.__instancia is None:
+            cls.__instancia = object.__new__(cls)
+        return cls.__instancia
 
     def __init__(self):
         super().__init__()

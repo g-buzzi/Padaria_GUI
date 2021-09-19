@@ -2,12 +2,12 @@ from PySimpleGUI.PySimpleGUI import popup_error
 from telas.tela_abstrata import Tela
 
 class TelaListaReceita(Tela):
-    instancia = None
+    __instancia = None
 
     def __new__(cls):
-        if TelaListaReceita.instancia is None:
-            TelaListaReceita.instancia = super().__new__(cls)
-        return TelaListaReceita.instancia
+        if cls.__instancia is None:
+            cls.__instancia = object.__new__(cls)
+        return cls.__instancia
 
     def __init__(self):
         super().__init__()
