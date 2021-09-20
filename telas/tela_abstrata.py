@@ -127,8 +127,8 @@ class Tela(ABC):
             opcoes.append(bt)
         return opcoes
 
-    def pesquisar(self, texto = "Pesquisa: "):
-        label = self.label(texto, tamanho=(30,1))
+    def pesquisar(self, texto = "Pesquisa: ", n_linhas=1):
+        label = self.label(texto, tamanho=(30,n_linhas))
         entrada = self.entrada("pesquisa", tamanho=(30,1))
         bt_volta = self.botao("Voltar", "voltar", tamanho=(10,1), padding=(2,5))
         bt_pesquisa = self.botao("Pesquisar", "pesquisar", tamanho=(10,1), padding=(2,5))

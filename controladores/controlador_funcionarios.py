@@ -157,6 +157,18 @@ class ControladorFuncionarios(Controlador):
             if cpf == funcionario.cpf:
                 raise DuplicatedException(mensagem_personalizada='Já existe funcionário com esse cpf.')
         
+    def seleciona_funcionario_por_matricula(self, matricula: int) -> Funcionario:
+        funcionario_encontrado = None
+        
+        for funcionario in self.__dao.get_objects():
+            if matricula == funcionario.matricula:
+                funcionario_encontrado = funcionario
+        
+        if not funcionario_encontrado:
+            raise NotFoundException(entidade='Funcionário')
+
+        return funcionario_encontrado
+
     def salva_dados_funcionario(self, dados_funcionario):
         self.__dao.add(Funcionario(
             dados_funcionario['matricula'],

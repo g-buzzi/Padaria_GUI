@@ -9,16 +9,16 @@ class Venda():
         self, 
         codigo: int, 
         atendente: Funcionario,
-        encomenda: bool):
+        encomenda: bool, desconto: float, data_entrega: str, cliente: Cliente, itens):
         
         self.__codigo = codigo 
         self.__atendente = atendente
         self.__encomenda = encomenda
-        self.__itens: list[Item] = []
-        self.__desconto: float = None
-        self.__cliente: Cliente = None
-        self.__data_entrega = None
-        self.__entregue: bool = None
+        self.__desconto = desconto
+        self.__data_entrega = data_entrega
+        self.__cliente = cliente
+        self.__itens = itens
+        self.__entregue: bool = False
         
     
     @property
@@ -37,7 +37,7 @@ class Venda():
     def preco_final(self) -> float:
         total = 0.0
         for item in self.__itens:
-            total = total + (item.quantidade * item.produto.preco_venda)
+            total = total + (int(item.quantidade) * item.produto.preco_venda)
             
         if self.__desconto > 0:
             total = total - (total * self.__desconto/100)
@@ -52,8 +52,8 @@ class Venda():
         self.__atendente = atendente
         
     @property
-    def encomenda(self) -> bool:
-        return self.__encomenda
+    def encomenda(self) -> str:
+        return 'Sim' if self.__encomenda else 'Não'
     
     @encomenda.setter 
     def encomenda(self, encomenda):        
