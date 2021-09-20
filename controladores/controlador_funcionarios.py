@@ -36,7 +36,6 @@ class ControladorFuncionarios(Controlador):
 
     def listar(self, valores = None):
         self.__pesquisa = False
-        self.__lista = self.dados_funcionarios()
 
 
     def abre_tela_inicial(self, dados=None):
@@ -46,6 +45,10 @@ class ControladorFuncionarios(Controlador):
                     "listar": self.listar}
         self.listar()
         while True:
+            if self.__pesquisa is False:
+                self.__lista = self.dados_funcionarios()
+            else:
+                self.__lista = self.pesquisa_funcionarios(self.__pesquisa)
             self.tela = TelaListaFuncionario()
             botao, valores = self.tela.lista_funcionarios(self.__lista, self.__pesquisa)
             
@@ -58,20 +61,21 @@ class ControladorFuncionarios(Controlador):
 
     def pesquisar(self, valores = None):
         self.tela = TelaListaFuncionario()
-        funcionarios = []
         texto_pesquisado = self.tela.pesquisar('Nome ou matrícula:')
 
         if texto_pesquisado:
-            for funcionario in self.__dao.get_objects():
-                if texto_pesquisado.lower() in funcionario.nome.lower() or texto_pesquisado in str(funcionario.matricula):
-                    funcionarios.append([funcionario.matricula, funcionario.nome, funcionario.cpf,
-                                        funcionario.telefone, funcionario.email, funcionario.salario])
-
             self.__pesquisa = texto_pesquisado
-            self.__lista = funcionarios
-            
         else:
             self.tela.close()
+    
+    def pesquisa_funcionarios(self, texto_pesquisado):
+        funcionarios = []
+        for funcionario in self.__dao.get_objects():
+            if texto_pesquisado.lower() in funcionario.nome.lower() or texto_pesquisado in str(funcionario.matricula):
+                funcionarios.append([funcionario.matricula, funcionario.nome, funcionario.cpf,
+                                    funcionario.telefone, funcionario.email, funcionario.salario])
+        return funcionarios
+
 
     def tratar_dados(self, dados: dict):
         
