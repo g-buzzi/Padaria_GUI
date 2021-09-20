@@ -189,6 +189,8 @@ class ControladorVendas(Controlador):
 
         if len(itens) == 0:
             raise EmptyFieldError("Obrigatório algum item para venda!")
+        else:
+            return itens
 
     def seleciona_atendente(self, matricula: int) -> Funcionario:
         try:
