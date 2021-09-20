@@ -13,10 +13,6 @@ class Tela(ABC):
         self.definir_tema()
 
     @property
-    def controlador(self):
-        return self.__controlador
-
-    @property
     def window(self):
         return self.__window
 

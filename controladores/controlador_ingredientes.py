@@ -25,7 +25,7 @@ class ControladorIngredientes(Controlador):
 
 #============================================ Listar Ingredientes =============================
 
-    def abre_tela_inicial(self, dados = None):
+    def abre_tela_inicial(self):
         switcher = {"cadastrar": self.cadastrar, "pesquisar": self.pesquisar, "lista_clique_duplo": self.mostrar, "listar": self.listar}
         self.listar()
         while True:
@@ -199,7 +199,7 @@ class ControladorIngredientes(Controlador):
     def ingredientes(self):
         return self.__dao.get_objects()
 
-    def alteracao_estoque(self, ingrediente):
+    def alteracao_estoque(self, ingrediente: Ingrediente):
         self.__dao.alter(ingrediente, ingrediente.codigo)
 
     def seleciona_ingrediente(self) -> dict:

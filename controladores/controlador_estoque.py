@@ -101,7 +101,7 @@ class ControladorEstoque(Controlador):
                 continue
             elif botao == "compra":
                 try:
-                    dados = self.trata_dados(dados)
+                    dados = self.trata_dados(dados, True)
                 except InputError as e:
                     self.tela.mensagem_erro(e.mensagem)
                     continue
@@ -190,7 +190,7 @@ class ControladorEstoque(Controlador):
                     pass
                 continue
             try:
-                dados_baixa = self.trata_dados(dados_baixa, True)
+                dados_baixa = self.trata_dados(dados_baixa, dados_baixa["tipo_ingrediente"])
             except InputError as e:
                 self.tela.mensagem_erro(e.mensagem)
                 continue
@@ -267,26 +267,13 @@ class ControladorEstoque(Controlador):
             dados.append(dados_movimentacao)
         return dados
 
-    def trata_dados(self, dados, baixa = False):
+    def trata_dados(self, dados, ingrediente = False):
         dados["codigo"] = self.formata_int(dados["codigo"], "Código")
-        if baixa is True and dados["tipo_ingrediente"] is True:
+        if ingrediente is True:
             dados["quantidade"] = self.formata_float(dados["quantidade"], "Quantidade")
         else:
             dados["quantidade"] = self.formata_int(dados["quantidade"], "Quantidade")
         return dados
-
-    def dados_movimentacao(self, movimentacao: Movimentacao):
-        dados = {}
-        dados["data"] = movimentacao.data.strftime("%d/%m/%Y, %H:%M:%S")
-        dados["tipo"] = movimentacao.tipo
-        dados["nome_produto"] = movimentacao.movimentado.nome
-        dados["quantidade"] = movimentacao.quantidade
-        dados["valor_total"] = movimentacao.valor_total
-        return dados
-
-    def mostra_movimentacao(self, movimentacao: Movimentacao):
-        dados = self.dados_movimentacao(movimentacao)
-        self.tela.mostra_movimentacao(dados)
 
 #============================================ Contato Externo =============================
 

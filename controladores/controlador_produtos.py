@@ -276,7 +276,7 @@ class ControladorProdutos(Controlador):
         except NotFoundException:
             return None
             
-    def seleciona_produto_por_codigo(self, codigo: int):
+    def seleciona_produto_por_codigo(self, codigo: int) -> Produto:
         return self.__dao.get(codigo)
 
     def remover_receita_associada(self, produto: Produto):
