@@ -134,6 +134,9 @@ class ControladorVendas(Controlador):
                 except ValueError:
                     self.tela.mensagem_erro("Produtos insuficientes para venda")
                     continue
+                except NotFoundException as e:
+                    self.tela.mensagem_erro(str(e))
+                    continue
 
             if botao_tela_cadastro == 'bt-voltar':
                 sair = True
@@ -241,20 +244,22 @@ class ControladorVendas(Controlador):
             return itens
 
     def seleciona_atendente(self, matricula: int) -> Funcionario:
-        try:
-            matricula = self.formata_int(matricula, 'Atendente')
-            funcionario = ControladorFuncionarios().seleciona_funcionario_por_matricula(matricula)
-            return funcionario
-        except NotFoundException as e:
-            self.tela.mensagem_erro(str(e))
+    
+        matricula = self.formata_int(matricula, 'Atendente')
+        funcionario = ControladorFuncionarios().seleciona_funcionario_por_matricula(matricula)
+        return funcionario
+       
 
     def seleciona_cliente(self, cpf: str, tipo: str):
-        try:
-            cpf = self.formata_string(cpf) if tipo == 'tipo_encomenda' else self.formata_string(cpf, checar_se_vazio=False)
+        
+        cpf = self.formata_string(cpf) if tipo == 'tipo_encomenda' else self.formata_string(cpf, checar_se_vazio=False)
+        try: 
             cliente = ControladorClientes().seleciona_cliente_por_cpf(cpf)
-            return cliente
-        except NotFoundException:
-            return None
+        except NotFoundException as e:
+            if cpf == '' and tipo == 'tipo_venda':
+                return None
+            raise NotFoundException(entidade='Cliente')
+        return cliente        
       
 
     def mostra_itens(self, itens):
