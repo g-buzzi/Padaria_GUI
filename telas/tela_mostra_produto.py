@@ -2,12 +2,12 @@ from telas.tela_abstrata import Tela
 from collections import defaultdict
 
 class TelaMostraProduto(Tela):
-    instancia = None
+    __instancia = None
 
     def __new__(cls):
-        if TelaMostraProduto.instancia is None:
-            TelaMostraProduto.instancia = super().__new__(cls)
-        return TelaMostraProduto.instancia
+        if cls.__instancia is None:
+            cls.__instancia = object.__new__(cls)
+        return cls.__instancia
 
     def __init__(self):
         super().__init__()
@@ -53,8 +53,8 @@ class TelaMostraProduto(Tela):
         
         campos = self.campos(dados)
 
-        bt_cadastrar = self.botao("Cadastrar", "cadastra")
-        bt_voltar = self.botao("Voltar", "volta")
+        bt_cadastrar = self.botao("Cadastrar", "cadastra", tamanho=(20, 1))
+        bt_voltar = self.botao("Voltar", "volta", tamanho=(20,1))
 
         layout = [[titulo],
                   campos,
@@ -67,8 +67,8 @@ class TelaMostraProduto(Tela):
         
         campos = self.campos(dados)
 
-        bt_alterar = self.botao("Alterar", "altera")
-        bt_cancelar = self.botao("Cancelar", "cancela")
+        bt_alterar = self.botao("Alterar", "altera", tamanho=(20,1))
+        bt_cancelar = self.botao("Cancelar", "cancela", tamanho=(20,1))
 
         layout = [[titulo],
                   campos,
@@ -81,9 +81,9 @@ class TelaMostraProduto(Tela):
 
         campos = self.campos(dados, True)
 
-        bt_alterar = self.botao("Alterar", "altera")
-        bt_remover = self.botao("Remover", "remove")
-        bt_voltar = self.botao("Voltar", "volta")
+        bt_alterar = self.botao("Alterar", "altera", tamanho=(12,1))
+        bt_remover = self.botao("Remover", "remove", tamanho=(12,1))
+        bt_voltar = self.botao("Voltar", "volta", tamanho=(12,1))
 
         layout = [[titulo],
                   campos,

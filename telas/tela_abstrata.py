@@ -13,10 +13,6 @@ class Tela(ABC):
         self.definir_tema()
 
     @property
-    def controlador(self):
-        return self.__controlador
-
-    @property
     def window(self):
         return self.__window
 
@@ -56,7 +52,7 @@ class Tela(ABC):
         sg.theme("Padaria")
 
     def janela(self, layout, titulo = "Padaria Elsecall", background = None, justificacao = "center"):
-        janela = sg.Window(titulo, layout= layout, margins=(0,0), resizable= True, finalize= True, element_justification = justificacao, background_color= background, use_custom_titlebar = True, titlebar_icon= "./telas/icon.png") 
+        janela = sg.Window(titulo, layout= layout, margins=(0,0), resizable= True, finalize= True, element_justification = justificacao, background_color= background, use_custom_titlebar = True) 
         return janela
 
     def popup(self, layout, titulo="Mensagem", tamanho = (None, None), keyboard_events = True):

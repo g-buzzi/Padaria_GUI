@@ -4,12 +4,12 @@ import DAOs.dao_ingrediente
 from excecoes.not_found_exception import NotFoundException
 
 class ProdutoDAO(DAO):
-    instancia = None
+    __instancia = None
 
     def __new__(cls):
-        if ProdutoDAO.instancia is None:
-            ProdutoDAO.instancia = super().__new__(cls)
-        return ProdutoDAO.instancia
+        if cls.__instancia is None:
+            cls.__instancia = object.__new__(cls)
+        return cls.__instancia
     
     def __init__(self) -> None:
         super().__init__(datasource="produtos.pkl")
@@ -20,18 +20,11 @@ class ProdutoDAO(DAO):
 
     def remove(self, produto: Produto):
         if isinstance(produto.codigo, int):
-            try:
-                super().remove(produto.codigo)
-            except KeyError:
-                raise NotFoundException("Produto")
+            super().remove(produto.codigo, "Produto")
 
     def get(self, codigo: int):
         if isinstance(codigo, int):
-            try:
-                produto = super().get(codigo)
-                return produto
-            except KeyError:
-                raise NotFoundException("Produto")
+            return super().get(codigo, "Produto")
 
     def alter(self, produto: Produto, codigo_antigo):
         if isinstance(produto, Produto) and isinstance(codigo_antigo, int):

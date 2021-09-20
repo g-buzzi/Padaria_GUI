@@ -12,12 +12,12 @@ from excecoes.input_error import InputError
 from collections import defaultdict
 
 class ControladorEstoque(Controlador):
-    instancia = None
+    __instancia = None
 
     def __new__(cls):
-        if cls.instancia is None:
-            cls.instancia = super().__new__(cls)
-        return cls.instancia
+        if cls.__instancia is None:
+            cls.__instancia = object.__new__(cls)
+        return cls.__instancia
 
     def __init__(self):
         super().__init__(TelaMenuEstoque())
@@ -101,7 +101,7 @@ class ControladorEstoque(Controlador):
                 continue
             elif botao == "compra":
                 try:
-                    dados = self.trata_dados(dados)
+                    dados = self.trata_dados(dados, True)
                 except InputError as e:
                     self.tela.mensagem_erro(e.mensagem)
                     continue
@@ -148,6 +148,9 @@ class ControladorEstoque(Controlador):
                     self.tela.mensagem_erro(str(e))
                     continue
                 if dados["quantidade"] != 0:
+                    if produto.receita is False:
+                        self.tela.mensagem_erro("Produto não possui uma receita!")
+                        continue
                     for ingrediente, quantidade_ingrediente in produto.receita.ingredientes_receita.items():
                             if ingrediente.quantidade_estoque < quantidade_ingrediente * dados["quantidade"]:
                                 self.tela.mensagem_erro("Ingredientes insuficientes para a produção")
@@ -187,7 +190,7 @@ class ControladorEstoque(Controlador):
                     pass
                 continue
             try:
-                dados_baixa = self.trata_dados(dados_baixa)
+                dados_baixa = self.trata_dados(dados_baixa, dados_baixa["tipo_ingrediente"])
             except InputError as e:
                 self.tela.mensagem_erro(e.mensagem)
                 continue
@@ -264,33 +267,23 @@ class ControladorEstoque(Controlador):
             dados.append(dados_movimentacao)
         return dados
 
-    def trata_dados(self, dados):
+    def trata_dados(self, dados, ingrediente = False):
         dados["codigo"] = self.formata_int(dados["codigo"], "Código")
-        dados["quantidade"] = self.formata_int(dados["quantidade"], "Quantidade")
+        if ingrediente is True:
+            dados["quantidade"] = self.formata_float(dados["quantidade"], "Quantidade")
+        else:
+            dados["quantidade"] = self.formata_int(dados["quantidade"], "Quantidade")
         return dados
-
-    def dados_movimentacao(self, movimentacao: Movimentacao):
-        dados = {}
-        dados["data"] = movimentacao.data.strftime("%d/%m/%Y, %H:%M:%S")
-        dados["tipo"] = movimentacao.tipo
-        dados["nome_produto"] = movimentacao.movimentado.nome
-        dados["quantidade"] = movimentacao.quantidade
-        dados["valor_total"] = movimentacao.valor_total
-        return dados
-
-    def mostra_movimentacao(self, movimentacao: Movimentacao):
-        dados = self.dados_movimentacao(movimentacao)
-        self.tela.mostra_movimentacao(dados)
 
 #============================================ Contato Externo =============================
 
     def processa_venda(self, venda: Venda):
         venda_organizada = self.possibilidade_venda(venda)
+        estoque = self.estoque
         for produto, quantidade in venda_organizada.items():
-            estoque = self.estoque
             estoque.venda(produto, quantidade)
             ControladorProdutos().alteracao_estoque(produto)
-            self.__dao.add(estoque)
+        self.__dao.add(estoque)
 
     def possibilidade_venda(self, venda: Venda):
         produtos = defaultdict(lambda: 0)

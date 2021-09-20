@@ -3,12 +3,12 @@ from telas.tela_abstrata import Tela
 from collections import defaultdict
 
 class TelaMostraIngrediente(Tela):
-    instancia = None
+    __instancia = None
 
     def __new__(cls):
-        if TelaMostraIngrediente.instancia is None:
-            TelaMostraIngrediente.instancia = super().__new__(cls)
-        return TelaMostraIngrediente.instancia
+        if cls.__instancia is None:
+            cls.__instancia = object.__new__(cls)
+        return cls.__instancia
 
     def __init__(self):
         super().__init__()
@@ -37,9 +37,9 @@ class TelaMostraIngrediente(Tela):
     def mostra(self, dados_ingrediente = {}):
         titulo = self.titulo(dados_ingrediente["nome"])
         campos = self.campos(dados_ingrediente, leitura = True)
-        alterar = self.botao("Alterar", "inicia_alteracao")
-        remover = self.botao("Remover", "remove")
-        voltar = self.botao("Voltar", "volta")
+        alterar = self.botao("Alterar", "inicia_alteracao", tamanho=(12, 1))
+        remover = self.botao("Remover", "remove", tamanho=(12, 1))
+        voltar = self.botao("Voltar", "volta", tamanho= (12, 1))
         layout = [[titulo]]
         for linha in campos:
             layout.append(linha)
@@ -50,8 +50,8 @@ class TelaMostraIngrediente(Tela):
     def cadastra(self, dados_ingrediente = defaultdict(lambda: None), unidades_medida = list()):
         titulo = self.titulo("Cadastrar Ingrediente")
         campos = self.campos(dados_ingrediente, unidades_medida)
-        altera = self.botao("Cadastrar", "cadastra")
-        voltar = self.botao("Voltar", "volta")
+        altera = self.botao("Cadastrar", "cadastra", tamanho=(20, 1))
+        voltar = self.botao("Voltar", "volta", tamanho = (20, 1))
         layout = [[titulo]]
         for linha in campos:
             layout.append(linha)
@@ -62,8 +62,8 @@ class TelaMostraIngrediente(Tela):
     def altera(self, dados_ingrediente = {}, unidades_medida = list()):
         titulo = self.titulo(dados_ingrediente["nome"])
         campos = self.campos(dados_ingrediente, unidades_medida)
-        altera = self.botao("Concluir", "conclui_alteracao")
-        voltar = self.botao("Voltar", "volta")
+        altera = self.botao("Concluir", "conclui_alteracao", tamanho=(20,1))
+        voltar = self.botao("Voltar", "volta", tamanho=(20, 1))
         layout = [[titulo]]
         for linha in campos:
             layout.append(linha)

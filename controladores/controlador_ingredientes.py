@@ -7,12 +7,12 @@ from excecoes.not_found_exception import NotFoundException
 from excecoes.input_error import InputError
 
 class ControladorIngredientes(Controlador):
-    instancia = None
+    __instancia = None
 
     def __new__(cls):
-        if cls.instancia is None:
-            cls.instancia = super().__new__(cls)
-        return cls.instancia
+        if cls.__instancia is None:
+            cls.__instancia = object.__new__(cls)
+        return cls.__instancia
 
     def __init__(self):
         super().__init__(TelaListaIngrediente())
@@ -25,7 +25,7 @@ class ControladorIngredientes(Controlador):
 
 #============================================ Listar Ingredientes =============================
 
-    def abre_tela_inicial(self, dados = None):
+    def abre_tela_inicial(self):
         switcher = {"cadastrar": self.cadastrar, "pesquisar": self.pesquisar, "lista_clique_duplo": self.mostrar, "listar": self.listar}
         self.listar()
         while True:
@@ -40,7 +40,6 @@ class ControladorIngredientes(Controlador):
                 self.tela.close()
                 break
             switcher[botao](valores)
-            self.tela.close()
 
     def pesquisar(self, valores = None):
         pesquisa = self.tela.pesquisar("Nome: ")
@@ -59,6 +58,7 @@ class ControladorIngredientes(Controlador):
         switcher = {"volta": False, "cadastra": True}
         dados = None
         while True:
+            self.tela.close()
             if dados is None:
                 botao, dados = self.tela.cadastra(unidades_medida= self.unidades_medida())
             else:
@@ -67,7 +67,6 @@ class ControladorIngredientes(Controlador):
                 try:
                     dados = self.tratar_dados(dados)
                 except InputError:
-                    self.tela.close()
                     continue
                 if dados["codigo"] not in self.__dao.get_keys():
                     for ingrediente in self.__dao.get_objects():
@@ -79,12 +78,10 @@ class ControladorIngredientes(Controlador):
                         self.__dao.add(Ingrediente(dados["codigo"], dados["nome"], dados["unidade_medida"], dados["preco_unitario"]))
                         self.tela.mensagem("Ingrediente cadastrado com sucesso")
                         self.tela.close()
-                        self.listar()
                         break
                     continue
                 else:
                     self.tela.mensagem_erro("Código já em uso, tente outro código")
-                    self.tela.close()
                     continue
             else:
                 self.tela.close()
@@ -94,6 +91,7 @@ class ControladorIngredientes(Controlador):
         try:
             selecionado = dados["lista"][0]
         except IndexError:
+            self.tela.mensagem_erro("Ingrediente não encontrado!")
             return
         codigo_ingrediente = self.__lista[selecionado][0]
         ingrediente = self.__dao.get(codigo_ingrediente)
@@ -111,6 +109,7 @@ class ControladorIngredientes(Controlador):
 
     def remove(self, ingrediente: Ingrediente):
         self.__dao.remove(ingrediente)
+        self.tela.mensagem("Ingrediente removido com sucesso!")
 
     def alteracao(self, ingrediente: Ingrediente):
         self.tela = TelaMostraIngrediente()
@@ -200,7 +199,7 @@ class ControladorIngredientes(Controlador):
     def ingredientes(self):
         return self.__dao.get_objects()
 
-    def alteracao_estoque(self, ingrediente):
+    def alteracao_estoque(self, ingrediente: Ingrediente):
         self.__dao.alter(ingrediente, ingrediente.codigo)
 
     def seleciona_ingrediente(self) -> dict:
@@ -215,6 +214,6 @@ class ControladorIngredientes(Controlador):
         except NotFoundException:
             return None
 
-    def seleciona_ingrediente_por_codigo(self, codigo: int):
+    def seleciona_ingrediente_por_codigo(self, codigo: int) -> Ingrediente:
         return self.__dao.get(codigo)
 

@@ -2,12 +2,12 @@ from PySimpleGUI.PySimpleGUI import popup_error
 from telas.tela_abstrata import Tela
 
 class TelaListaReceita(Tela):
-    instancia = None
+    __instancia = None
 
     def __new__(cls):
-        if TelaListaReceita.instancia is None:
-            TelaListaReceita.instancia = super().__new__(cls)
-        return TelaListaReceita.instancia
+        if cls.__instancia is None:
+            cls.__instancia = object.__new__(cls)
+        return cls.__instancia
 
     def __init__(self):
         super().__init__()
@@ -43,11 +43,11 @@ class TelaListaReceita(Tela):
 
     def pesquisa_receita(self, codigo_ingrediente = ""):
         titulo = self.titulo("Pesquisa")
-        lb_codigo_ingrediente = self.label("Código do ingrediente:")
+        lb_codigo_ingrediente = self.label("Código do ingrediente:", tamanho= (30, 1))
         in_codigo_ingrediente = self.entrada("codigo_ingrediente", codigo_ingrediente,  tamanho=(20, 1), padding = ((1,0), 2))
         bt_codigo_ingrediente = self.botao("Selecionar", "seleciona_ingrediente", tamanho=(10,1), padding=((10,1), 2))
-        bt_pesquisar = self.botao("Pesquisar", "pesquisar", tamanho=(20,1), padding=(2.5, 1))
-        bt_voltar = self.botao("Voltar", "voltar", tamanho=(20,1), padding=(2.5, 1))
+        bt_pesquisar = self.botao("Pesquisar", "pesquisar", tamanho=(12,1), padding=(2.5, 1))
+        bt_voltar = self.botao("Voltar", "voltar", tamanho=(12,1), padding=(2.5, 1))
         layout = [[titulo], [lb_codigo_ingrediente], [in_codigo_ingrediente, bt_codigo_ingrediente], [bt_pesquisar, bt_voltar]]
         popup = self.popup(layout, "Pesquisar", keyboard_events= False)
         return popup.read(close= True)

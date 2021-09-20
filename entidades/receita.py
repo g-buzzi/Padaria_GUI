@@ -61,12 +61,6 @@ class Receita:
     def remove_produto_associado(self):
         self.__produto_associado = False
 
-    def inclui_ingrediente(self, ingrediente: Ingrediente, quantidade: float): #Remover se não for usar
-        self.__ingredientes_receita[ingrediente] = quantidade
-
-    def remove_ingrediente(self, ingrediente: Ingrediente): #Remover se não for usar
-        self.__ingredientes_receita.pop(ingrediente)
-
     @property
     def custo_preparo(self) -> float:
         custo = 0

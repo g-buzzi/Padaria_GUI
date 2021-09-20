@@ -1,12 +1,12 @@
 from telas.tela_abstrata import Tela
 
 class TelaListaProduto(Tela):
-    instancia = None
+    __instancia = None
 
     def __new__(cls):
-        if TelaListaProduto.instancia is None:
-            TelaListaProduto.instancia = super().__new__(cls)
-        return TelaListaProduto.instancia
+        if cls.__instancia is None:
+            cls.__instancia = object.__new__(cls)
+        return cls.__instancia
 
     def __init__(self):
         super().__init__()

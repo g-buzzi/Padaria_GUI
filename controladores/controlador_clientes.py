@@ -19,6 +19,7 @@ class ControladorClientes(Controlador):
         super().__init__(TelaListaCliente())
         self.__dao = ClienteDao()
         self.__pesquisa = False
+        self.__lista = []
 
     def inicia(self):
         self.abre_tela_inicial()
@@ -33,18 +34,20 @@ class ControladorClientes(Controlador):
 
     def listar(self, valores = None):
         self.__pesquisa = False
-        self.tela = TelaListaCliente()
-        self.__lista = self.dados_clientes()
-        return self.tela.lista_clientes(self.__lista, self.__pesquisa)
 
     def abre_tela_inicial(self, dados=None):
         switcher = {"cadastrar": self.cadastra_cliente, 
                     "pesquisar": self.pesquisar, 
                     "lista_clique_duplo": self.mostrar_cliente,
                     "listar": self.listar}
-        
+        self.listar()
         while True:
-            botao, valores = self.listar()
+            if self.__pesquisa is False:
+                self.__lista = self.dados_clientes()
+            else:
+                self.__lista = self.pesquisa_clientes(self.__pesquisa)
+            self.tela = TelaListaCliente()
+            botao, valores = self.tela.lista_clientes(self.__lista, self.__pesquisa)
             
             if botao == 'voltar':
                 self.tela.close()
@@ -133,20 +136,20 @@ class ControladorClientes(Controlador):
 
     def pesquisar(self, valores = None):
         self.tela = TelaListaCliente()
-        clientes: Cliente = []
         texto_pesquisado = self.tela.pesquisar('Nome ou cpf:')
 
         if texto_pesquisado:
-            for cliente in self.__dao.get_objects():
-                if texto_pesquisado.lower() in cliente.nome.lower() or texto_pesquisado.lower() in cliente.cpf.lower():
-                    clientes.append([cliente.cpf, cliente.nome,
-                                        cliente.telefone, cliente.email, cliente.endereco])
-
             self.__pesquisa = texto_pesquisado
-            self.tela.lista_clientes(clientes, self.__pesquisa)
-            
         else:
             self.tela.close()
+
+    def pesquisa_clientes(self, texto_pesquisado: str):
+        clientes: Cliente = []
+        for cliente in self.__dao.get_objects():
+            if texto_pesquisado.lower() in cliente.nome.lower() or texto_pesquisado.lower() in cliente.cpf.lower():
+                clientes.append([cliente.cpf, cliente.nome,
+                                    cliente.telefone, cliente.email, cliente.endereco])
+        return clientes
 
     def dados_cliente(self, cliente: Cliente) -> dict:
         dados = {

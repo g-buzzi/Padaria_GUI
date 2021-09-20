@@ -4,14 +4,14 @@ from DAOs.dao_produto import ProdutoDAO
 from excecoes.not_found_exception import NotFoundException
 
 class ReceitaDAO(DAO):
-    instancia = None
+    __instancia = None
 
     def __new__(cls):
-        if ReceitaDAO.instancia is None:
-            ReceitaDAO.instancia = super().__new__(cls)
-        return ReceitaDAO.instancia
+        if cls.__instancia is None:
+            cls.__instancia = object.__new__(cls)
+        return cls.__instancia
 
-    def __init__(self) -> None:
+    def __init__(self):
         super().__init__("receitas.pkl")
 
     def add(self, receita: Receita):
@@ -20,17 +20,11 @@ class ReceitaDAO(DAO):
 
     def remove(self, receita: Receita):
         if isinstance(receita.codigo, int):
-            try:
-                super().remove(receita.codigo)
-            except KeyError:
-                raise NotFoundException("Receita")
+            super().remove(receita.codigo, "Receita")
 
-    def get(self, codigo: int):
+    def get(self, codigo: int) -> Receita:
         if isinstance(codigo, int):
-            try:
-                return super().get(codigo)
-            except KeyError:
-                raise NotFoundException("Receita")
+            return super().get(codigo, "Receita")
 
 
     def alter(self, receita: Receita, codigo_antigo: int):

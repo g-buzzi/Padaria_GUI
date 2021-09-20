@@ -3,12 +3,12 @@ from telas.tela_abstrata import Tela
 from collections import defaultdict
 
 class TelaMostraReceita(Tela):
-    instancia = None
+    __instancia = None
 
     def __new__(cls):
-        if TelaMostraReceita.instancia is None:
-            TelaMostraReceita.instancia = super().__new__(cls)
-        return TelaMostraReceita.instancia
+        if cls.__instancia is None:
+            cls.__instancia = object.__new__(cls)
+        return cls.__instancia
 
     def __init__(self):
         super().__init__()
@@ -37,9 +37,9 @@ class TelaMostraReceita(Tela):
         lb_ingredientes_receita = self.label("Ingredientes:", tamanho=(46,1))
         in_ingredientes_receita = self.lista(["Código", "Nome", "Quantidade", "Unidade de Medida"], dados["ingredientes_receita"], n_linhas= 5)
 
-        bt_alterar = self.botao("Alterar", "alterar")
-        bt_remover = self.botao("Remover", "remover")
-        bt_voltar = self.botao("Voltar", "voltar")
+        bt_alterar = self.botao("Alterar", "alterar", tamanho=(13, 1))
+        bt_remover = self.botao("Remover", "remover", tamanho=(13,1))
+        bt_voltar = self.botao("Voltar", "voltar", tamanho=(13,1))
 
         layout = [[titulo],
                  [lb_codigo, in_codigo],
@@ -100,7 +100,7 @@ class TelaMostraReceita(Tela):
         titulo = self.titulo("Alterar Receita")
         campos = self.campos(dados)
         bt_alterar = self.botao("Alterar", "alterar", tamanho=(23, 1), padding= (2.5, 2))
-        bt_cancelar = self.botao("cancelar", "cancelar", tamanho=(23, 1), padding= (2.5, 2))
+        bt_cancelar = self.botao("Cancelar", "cancelar", tamanho=(23, 1), padding= (2.5, 2))
 
         layout = [[titulo], campos, [bt_alterar, bt_cancelar]]
         self.window = self.janela(layout)
@@ -109,15 +109,15 @@ class TelaMostraReceita(Tela):
     def adiciona_ingrediente_receita(self, dados: dict):
         titulo = self.titulo("Adicionar Ingrediente")
 
-        lb_codigo_ingrediente = self.label("Código do ingrediente:")
+        lb_codigo_ingrediente = self.label("Código do ingrediente:", tamanho=(30, 1))
         in_codigo_ingrediente = self.entrada("codigo_ingrediente", dados["codigo_ingrediente"],  tamanho=(20, 1), padding = ((1,0), 2))
         bt_codigo_ingrediente = self.botao("Selecionar", "seleciona_ingrediente", tamanho=(10,1), padding=((10,1), 2))
 
-        lb_quantidade = self.label("Quantidade:")
-        in_quantidade = self.entrada("quantidade", dados["quantidade"], tamanho=(30,1))
+        lb_quantidade = self.label("Quantidade:", tamanho=(30, 1))
+        in_quantidade = self.entrada("quantidade", dados["quantidade"], tamanho=(34,1))
 
-        bt_adicionar = self.botao("Adicionar", "adicionar")
-        bt_cancelar = self.botao("Cancelar", "cancelar")
+        bt_adicionar = self.botao("Adicionar", "adicionar", tamanho=(12,1))
+        bt_cancelar = self.botao("Cancelar", "cancelar", tamanho=(12, 1))
 
         layout = [[titulo], [lb_codigo_ingrediente], 
                   [in_codigo_ingrediente, bt_codigo_ingrediente],

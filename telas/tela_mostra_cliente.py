@@ -46,8 +46,8 @@ class TelaMostraCliente(Tela):
                     [self.titulo("Cadastrar Cliente")],
                     list(map(lambda campo : campo, self.campos(dados_cliente))),
                     [
-                        self.botao("Cadastrar", "bt-cadastrar"), 
-                        self.botao("Voltar", "bt-voltar")
+                        self.botao("Cadastrar", "bt-cadastrar", tamanho=(20,1)), 
+                        self.botao("Voltar", "bt-voltar", tamanho=(20, 1))
                     ]
                 ]
 
@@ -60,9 +60,9 @@ class TelaMostraCliente(Tela):
                     [self.titulo(dados_cliente["nome"])],
                     list(map(lambda campo : campo, self.campos(dados_cliente, leitura = True))),
                     [
-                        self.botao("Alterar", "bt-alterar"), 
-                        self.botao("Remover", "bt-remover"), 
-                        self.botao("Voltar", "bt-voltar")
+                        self.botao("Alterar", "bt-alterar", tamanho=(12,1)), 
+                        self.botao("Remover", "bt-remover", tamanho=(12,1)), 
+                        self.botao("Voltar", "bt-voltar", tamanho=(12,1))
                     ]
                 ]
        
@@ -75,8 +75,8 @@ class TelaMostraCliente(Tela):
                     [self.titulo(dados_cliente["nome"])],
                     list(map(lambda campo : campo, self.campos(dados_cliente))),
                     [
-                        self.botao("Concluir", "bt-concluir"), 
-                        self.botao("Voltar", "bt-voltar")
+                        self.botao("Concluir", "bt-concluir", tamanho=(20,1)), 
+                        self.botao("Voltar", "bt-voltar", tamanho=(20,1))
                     ]
                 ]
         

@@ -1,12 +1,12 @@
 from telas.tela_abstrata import Tela
 
 class TelaMostraEstoque(Tela):
-    instancia = None
+    __instancia = None
 
     def __new__(cls):
-        if TelaMostraEstoque.instancia is None:
-            TelaMostraEstoque.instancia = super().__new__(cls)
-        return TelaMostraEstoque.instancia
+        if cls.__instancia is None:
+            cls.__instancia = object.__new__(cls)
+        return cls.__instancia
 
     def __init__(self):
         super().__init__()
@@ -33,8 +33,8 @@ class TelaMostraEstoque(Tela):
         rd_prod = self.radio("tipo", "Produto", "produto", selecionado = dados["tipo_produto"], tamanho= (11,1))
         campos = self.campos(dados, None)
 
-        bt_baixa = self.botao("Baixa", "baixa")
-        bt_cancela = self.botao("Cancelar", "cancela")
+        bt_baixa = self.botao("Baixa", "baixa", tamanho=(13, 1))
+        bt_cancela = self.botao("Cancelar", "cancela", tamanho=(13, 1))
 
         layout = [[titulo], [lb_tipo], [rd_ing, rd_prod], campos, [bt_baixa, bt_cancela]]
         self.window = self.janela(layout)
@@ -44,8 +44,8 @@ class TelaMostraEstoque(Tela):
     def compra(self, dados):
         titulo = self.titulo("Compra")
         campos = self.campos(dados, tipo= "ingrediente")
-        bt_compra = self.botao("Comprar", "compra")
-        bt_cancela = self.botao("Cancelar", "cancela")
+        bt_compra = self.botao("Comprar", "compra", tamanho= (13, 1))
+        bt_cancela = self.botao("Cancelar", "cancela", tamanho=(13,1))
         layout = [[titulo], campos, [bt_compra, bt_cancela]]
         self.window = self.janela(layout)
         return self.read()
@@ -53,8 +53,8 @@ class TelaMostraEstoque(Tela):
     def producao(self, dados):
         titulo = self.titulo("Produção")
         campos = self.campos(dados, tipo= "produto")
-        bt_produzir = self.botao("Produzir", "producao")
-        bt_cancela = self.botao("Cancelar", "cancela")
+        bt_produzir = self.botao("Produzir", "producao", tamanho=(13,1))
+        bt_cancela = self.botao("Cancelar", "cancela", tamanho=(13,1))
         layout = [[titulo], campos, [bt_produzir, bt_cancela]]
         self.window = self.janela(layout)
         return self.read()

@@ -3,6 +3,7 @@ from excecoes.not_found_exception import NotFoundException
 import pickle
 
 class DAO(ABC):
+    
     @abstractmethod
     def __init__(self, datasource="") -> None:
         super().__init__()
