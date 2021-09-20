@@ -16,7 +16,7 @@ class TelaCentral(Tela):
 
     def inicia(self):
         botoes = {"Vendas": "vendas","Ingredientes": "ingredientes", "Receitas": "receitas",
-                  "Produtos": "produtos", "Estoque": "estoque", "Funcionário": "funcionarios",
+                  "Produtos": "produtos", "Estoque": "estoque", "Funcionários": "funcionarios",
                   "Clientes": 'clientes', "Sair": "sair"}
         titulo = self.titulo("Menu")
         menu = self.menu(botoes)

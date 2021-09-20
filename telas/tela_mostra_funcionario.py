@@ -49,7 +49,7 @@ class TelaMostraFuncionario(Tela):
         layout = [
                     [self.titulo("Cadastrar Funcionário")],
                     list(map(lambda campo : campo, self.campos(dados_funcionario))),
-                    [self.botao("Cadastrar", "cadastra"), self.botao("Voltar", "volta")]
+                    [self.botao("Cadastrar", "cadastra", tamanho=(20, 1)), self.botao("Voltar", "volta", tamanho=(20,1))]
                 ]
 
         self.window = self.janela(layout)
@@ -61,9 +61,9 @@ class TelaMostraFuncionario(Tela):
                     [self.titulo(dados_funcionario["nome"])],
                     list(map(lambda campo : campo, self.campos(dados_funcionario, leitura = True))),
                     [
-                        self.botao("Alterar", "inicia_alteracao"), 
-                        self.botao("Remover", "remove"), 
-                        self.botao("Voltar", "volta")
+                        self.botao("Alterar", "inicia_alteracao", tamanho=(12, 1)), 
+                        self.botao("Remover", "remove", tamanho=(12,1 )), 
+                        self.botao("Voltar", "volta", tamanho=(12,1))
                     ]
                 ]
        
@@ -75,7 +75,7 @@ class TelaMostraFuncionario(Tela):
         layout = [
                     [self.titulo(dados_funcionario["nome"])],
                     list(map(lambda campo : campo, self.campos(dados_funcionario))),
-                    [self.botao("Concluir", "conclui_alteracao"), self.botao("Voltar", "volta")]
+                    [self.botao("Concluir", "conclui_alteracao", tamanho=(20, 1)), self.botao("Voltar", "volta", tamanho=(20,1))]
                 ]
 
         self.window = self.janela(layout)

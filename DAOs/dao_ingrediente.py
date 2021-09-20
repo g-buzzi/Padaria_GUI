@@ -20,18 +20,12 @@ class IngredienteDAO(DAO):
 
     def remove(self, ingrediente: Ingrediente):
         if isinstance(ingrediente.codigo, int):
-            try:
-                super().remove(ingrediente.codigo)
-                ReceitaDAO().remove_ingrediente(ingrediente.codigo)
-            except KeyError:
-                raise NotFoundException("Ingrediente")
+            super().remove(ingrediente.codigo, "Ingrediente")
+            ReceitaDAO().remove_ingrediente(ingrediente.codigo)
 
     def get(self, codigo: int):
         if isinstance(codigo, int):
-            try:
-                return super().get(codigo)
-            except KeyError:
-                raise NotFoundException("Ingrediente")
+            return super().get(codigo, "Ingrediente")
 
     def alter(self, ingrediente: Ingrediente, codigo_antigo: int):
         if isinstance(ingrediente, Ingrediente) and isinstance(codigo_antigo, int):

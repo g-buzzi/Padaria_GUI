@@ -21,6 +21,7 @@ class ControladorProdutos(Controlador):
     def __init__(self):
         super().__init__(TelaListaProduto())
         self.__dao = ProdutoDAO()
+        self.__lista = []
         self.__pesquisa = False
 
 #============================================ Listar Produtos =============================
@@ -40,7 +41,6 @@ class ControladorProdutos(Controlador):
                 self.tela.close()
                 break
             switcher[botao](valores)
-            self.tela.close()
 
     def pesquisar(self, valores = None):
         pesquisa = self.tela.pesquisar("Nome: ")
@@ -60,6 +60,7 @@ class ControladorProdutos(Controlador):
             self.tela.close()
             botao, dados_produto = self.tela.cadastra(dados_produto)
             if botao == "volta":
+                self.tela.close()
                 break
             elif botao == "seleciona_receita":
                 dados_receita = controladores.controlador_receitas.ControladorReceitas().seleciona_receita()
@@ -73,7 +74,7 @@ class ControladorProdutos(Controlador):
                     continue
                 try:
                     self.__dao.get(dados_produto["codigo"])
-                except (NotFoundException, KeyError):
+                except NotFoundException:
                     pass
                 else:
                     self.tela.mensagem_erro("O código já está em uso!")
@@ -83,6 +84,7 @@ class ControladorProdutos(Controlador):
                         receita = controladores.controlador_receitas.ControladorReceitas().seleciona_receita_por_codigo(dados_produto["codigo_receita"])
                     except NotFoundException as e:
                         self.tela.mensagem_erro(str(e))
+                        continue
                 else:
                     receita = False
                 for produto in self.__dao.get_objects():
@@ -185,6 +187,7 @@ class ControladorProdutos(Controlador):
         self.__dao.remove(produto)
         if produto.receita is not False:
             controladores.controlador_receitas.ControladorReceitas().remover_produto_associado(produto.receita)
+        self.tela.mensagem("Produto removido com sucesso!")
 
 
  #============================================ Lidar com os dados =============================
@@ -227,7 +230,7 @@ class ControladorProdutos(Controlador):
         dados["nome"] = self.formata_string(dados["nome"])
         dados["preco_venda"] = self.formata_float(dados["preco_venda"], "Preço de Venda")
         dados["descricao"] = self.formata_string(dados["descricao"])
-        if dados["codigo_receita"] == "":
+        if dados["codigo_receita"] == "" or dados["codigo_receita"] == "--":
             dados["codigo_receita"] = False
         else:
             dados["codigo_receita"] = self.formata_int(dados["codigo_receita"], "Código da receita")

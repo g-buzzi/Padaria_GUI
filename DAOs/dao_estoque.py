@@ -1,5 +1,6 @@
 from DAOs.dao_abstrato import DAO
 from entidades.estoque import Estoque
+from excecoes.not_found_exception import NotFoundException
 
 class EstoqueDAO(DAO):
     __instancia = None
@@ -21,8 +22,8 @@ class EstoqueDAO(DAO):
 
     def get(self):
         try:
-            return super().get("estoque")
-        except KeyError:
+            return super().get("estoque", "Estoque")
+        except NotFoundException:
             estoque = Estoque()
             super().add("estoque", estoque)
             return estoque

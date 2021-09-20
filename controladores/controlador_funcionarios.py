@@ -22,6 +22,7 @@ class ControladorFuncionarios(Controlador):
         super().__init__(TelaListaFuncionario())
         self.__dao = FuncionarioDao()
         self.__pesquisa = False
+        self.__lista = []
 
     def inicia(self):
         self.abre_tela_inicial()
@@ -35,9 +36,7 @@ class ControladorFuncionarios(Controlador):
 
     def listar(self, valores = None):
         self.__pesquisa = False
-        self.tela = TelaListaFuncionario()
         self.__lista = self.dados_funcionarios()
-        return self.tela.lista_funcionarios(self.__lista, self.__pesquisa)
 
 
     def abre_tela_inicial(self, dados=None):
@@ -45,9 +44,10 @@ class ControladorFuncionarios(Controlador):
                     "pesquisar": self.pesquisar, 
                     "lista_clique_duplo": self.mostrar_funcionario,
                     "listar": self.listar}
-        
+        self.listar()
         while True:
-            botao, valores = self.listar()
+            self.tela = TelaListaFuncionario()
+            botao, valores = self.tela.lista_funcionarios(self.__lista, self.__pesquisa)
             
             if botao == 'voltar':
                 self.tela.close()
@@ -68,7 +68,7 @@ class ControladorFuncionarios(Controlador):
                                         funcionario.telefone, funcionario.email, funcionario.salario])
 
             self.__pesquisa = texto_pesquisado
-            self.tela.lista_funcionarios(funcionarios, self.__pesquisa)
+            self.__lista = funcionarios
             
         else:
             self.tela.close()

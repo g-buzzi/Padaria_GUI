@@ -19,6 +19,7 @@ class ControladorClientes(Controlador):
         super().__init__(TelaListaCliente())
         self.__dao = ClienteDao()
         self.__pesquisa = False
+        self.__lista = []
 
     def inicia(self):
         self.abre_tela_inicial()
@@ -33,18 +34,17 @@ class ControladorClientes(Controlador):
 
     def listar(self, valores = None):
         self.__pesquisa = False
-        self.tela = TelaListaCliente()
         self.__lista = self.dados_clientes()
-        return self.tela.lista_clientes(self.__lista, self.__pesquisa)
 
     def abre_tela_inicial(self, dados=None):
         switcher = {"cadastrar": self.cadastra_cliente, 
                     "pesquisar": self.pesquisar, 
                     "lista_clique_duplo": self.mostrar_cliente,
                     "listar": self.listar}
-        
+        self.listar()
         while True:
-            botao, valores = self.listar()
+            self.tela = TelaListaCliente()
+            botao, valores = self.tela.lista_clientes(self.__lista, self.__pesquisa)
             
             if botao == 'voltar':
                 self.tela.close()
@@ -143,7 +143,7 @@ class ControladorClientes(Controlador):
                                         cliente.telefone, cliente.email, cliente.endereco])
 
             self.__pesquisa = texto_pesquisado
-            self.tela.lista_clientes(clientes, self.__pesquisa)
+            self.__lista = clientes
             
         else:
             self.tela.close()

@@ -20,17 +20,11 @@ class ReceitaDAO(DAO):
 
     def remove(self, receita: Receita):
         if isinstance(receita.codigo, int):
-            try:
-                super().remove(receita.codigo)
-            except KeyError:
-                raise NotFoundException("Receita")
+            super().remove(receita.codigo, "Receita")
 
     def get(self, codigo: int) -> Receita:
         if isinstance(codigo, int):
-            try:
-                return super().get(codigo)
-            except KeyError:
-                raise NotFoundException("Receita")
+            return super().get(codigo, "Receita")
 
 
     def alter(self, receita: Receita, codigo_antigo: int):

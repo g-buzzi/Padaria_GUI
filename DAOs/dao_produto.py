@@ -20,18 +20,11 @@ class ProdutoDAO(DAO):
 
     def remove(self, produto: Produto):
         if isinstance(produto.codigo, int):
-            try:
-                super().remove(produto.codigo)
-            except KeyError:
-                raise NotFoundException("Produto")
+            super().remove(produto.codigo, "Produto")
 
     def get(self, codigo: int):
         if isinstance(codigo, int):
-            try:
-                produto = super().get(codigo)
-                return produto
-            except KeyError:
-                raise NotFoundException("Produto")
+            return super().get(codigo, "Produto")
 
     def alter(self, produto: Produto, codigo_antigo):
         if isinstance(produto, Produto) and isinstance(codigo_antigo, int):

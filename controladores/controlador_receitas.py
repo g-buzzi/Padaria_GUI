@@ -92,8 +92,7 @@ class ControladorReceitas(Controlador):
             if botao == "cadastrar":
                 try:
                     dados_receita = self.tratar_dados(dados_receita)
-                except InputError as e:
-                    self.tela.mensagem_erro(e.mensagem)
+                except InputError:
                     continue
                 if dados_receita["codigo"] in self.__dao.get_keys():
                     self.tela.mensagem_erro("Código já em uso!")
@@ -129,6 +128,7 @@ class ControladorReceitas(Controlador):
         self.__dao.remove(receita)
         if receita.produto_associado is not False:
             controladores.controlador_produtos.ControladorProdutos().remover_receita_associada(receita.produto_associado)
+        self.tela.mensagem("Receita removida com sucesso!")
 
     def alteracao(self, receita: Receita):
         switcher = {"adicionar_ingrediente": self.adiciona_ingrediente_receita, "remover_ingrediente": self.remove_ingrediente_receita}
@@ -155,8 +155,7 @@ class ControladorReceitas(Controlador):
     def altera(self, receita: Receita, dados):
         try:
             dados = self.tratar_dados(dados)
-        except InputError as e:
-            self.tela.mensagem_erro(e.mensagem)
+        except InputError:
             return False
         if receita.codigo != dados["codigo"]:
             if dados["codigo"] in self.__dao.get_keys():
@@ -215,7 +214,7 @@ class ControladorReceitas(Controlador):
         try:
             dados_receita["ingredientes_receita"].pop(valores["lista"][0])
         except IndexError:
-            pass
+            self.tela.mensagem_erro("Nenhum ingrediente foi selecionado!")
 
     def adiciona_ingrediente_receita(self, dados_receita: dict, valores: dict):
         dados_ingrediente_receita = defaultdict(lambda: None)
@@ -240,6 +239,10 @@ class ControladorReceitas(Controlador):
                     ingrediente = ControladorIngredientes().seleciona_ingrediente_por_codigo(codigo_ingrediente)
                 except NotFoundException as e:
                     self.tela.mensagem_erro(str(e))
+                    continue
+                if quantidade == 0:
+                    self.tela.mensagem_erro("A quantidade deve ser maior que 0!")
+                    continue
                 for valores in dados_receita["ingredientes_receita"]:
                     if valores[0] == ingrediente.codigo:
                         self.tela.mensagem_erro("Este ingrediente já está associado à receita")
@@ -249,16 +252,20 @@ class ControladorReceitas(Controlador):
                     break
 
     def tratar_dados(self, dados: dict):
-        dados["codigo"] = self.formata_int(dados["codigo"], "Código")
-        dados["tempo_preparo"] = self.formata_int(dados["tempo_preparo"], "Tempo de preparo")
-        dados["rendimento"] = self.formata_int(dados["rendimento"], "Rendimento")
-        dados["modo_preparo"] = self.formata_string(dados["modo_preparo"])
-        ingredientes_receita = {}
-        for valores in dados["ingredientes_receita"]:
-            ingrediente = ControladorIngredientes().seleciona_ingrediente_por_codigo(valores[0])
-            ingredientes_receita[ingrediente] = valores[2]
-        dados["ingredientes_receita"] = ingredientes_receita
-        return dados
+        try:
+            dados["codigo"] = self.formata_int(dados["codigo"], "Código")
+            dados["tempo_preparo"] = self.formata_int(dados["tempo_preparo"], "Tempo de preparo")
+            dados["rendimento"] = self.formata_int(dados["rendimento"], "Rendimento")
+            dados["modo_preparo"] = self.formata_string(dados["modo_preparo"])
+            ingredientes_receita = {}
+            for valores in dados["ingredientes_receita"]:
+                ingrediente = ControladorIngredientes().seleciona_ingrediente_por_codigo(valores[0])
+                ingredientes_receita[ingrediente] = valores[2]
+            dados["ingredientes_receita"] = ingredientes_receita
+            return dados
+        except InputError as e:
+            self.tela.mensagem_erro(e.mensagem)
+            raise InputError()
 
     def pesquisa_por_ingrediente(self, codigo_ingrediente: int):
         try:
@@ -297,19 +304,17 @@ class ControladorReceitas(Controlador):
         try:
             receita = self.__dao.get(lista[posicao][0])
             return self.dados_receita(receita)
-        except NotFoundException:
+        except NotFoundException as e:
+            self.tela.mensagem_erro(str(e))
             return None
 
-    def seleciona_receita_por_codigo(self, codigo: int):
-        try:
-            return self.__dao.get(codigo)
-        except KeyError:
-            raise NotFoundException()
+    def seleciona_receita_por_codigo(self, codigo: int) -> Receita: #Pode vir um NotFoundException
+        return self.__dao.get(codigo)
 
     def associar_produto_receita(self, receita: Receita, produto: Produto):
         receita = self.__dao.get(receita.codigo)
         if receita.produto_associado is not False:
-            raise DuplicatedException("Receita", "Receita já está associada a um produto")
+            raise DuplicatedException("Receita já está associada a um produto")
         else:
             receita.produto_associado = produto
             self.__dao.add(receita)
