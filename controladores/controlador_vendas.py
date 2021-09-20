@@ -74,7 +74,7 @@ class ControladorVendas(Controlador):
         if botao == 'bt-cancelar':
             self.tela.close()
 
-        while botao == 'bt-ok' and continue_while:
+        while True:
             botao_tela_cadastro, dados_form = self.tela.cadastrar(dados_venda, tipo='tipo_encomenda' if tipo['tipo_encomenda'] else 'tipo_venda')
             
             if botao_tela_cadastro == 'bt_adicionar_item':
@@ -90,22 +90,18 @@ class ControladorVendas(Controlador):
                 try:
                     dados_form['itens'] = itens
                     dados_venda = self.tratar_dados(dados_form, tipo='tipo_encomenda' if tipo['tipo_encomenda'] else 'tipo_venda')
-                
-                except InputError as e:
-                    self.tela.mensagem_erro(e.mensagem)
-                    continue
-            
-                try:
                     self.salva_dados_venda(dados_form)
                     self.tela.mensagem('Venda cadastrada com sucesso!')
                     self.tela.close()
                     break
+                except InputError as e:
+                    self.tela.mensagem_erro(e.mensagem)
+                    continue
                 except DuplicatedException as e:
                     self.tela.mensagem_erro(str(e))
                     continue
 
             if botao_tela_cadastro == 'bt-voltar':
-                continue_while = False
                 self.tela.close()
 
     def mostrar_venda(self, dados):
@@ -159,8 +155,7 @@ class ControladorVendas(Controlador):
                 return item
             except NotFoundException as e:
                 self.tela.mensagem_erro(str(e))
-            
-        # if botao == 'cancelar':
+     
         self.tela.close()
 
     def salva_dados_venda(self, dados_venda):

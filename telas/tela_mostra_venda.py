@@ -23,8 +23,8 @@ class TelaMostraVenda(Tela):
             [self.botao("Ok", "bt-ok"), self.botao("Cancelar", "bt-cancelar")]
         ]
 
-        self.window = self.janela(layout)
-        return self.read()
+        janela = self.popup(layout)
+        return janela.read(close = True)
 
       
 
