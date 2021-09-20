@@ -141,8 +141,6 @@ class TelaMostraVenda(Tela):
 
     def mostrar(self, dados_venda = {}):
 
-        print('lambda', list(map(lambda item: item.produto.nome, dados_venda['itens'])))
-
         layout = [
                     [self.titulo('Venda de Código: ' + str(dados_venda["codigo"]))],
                     list(map(lambda campo : campo, self.campos_para_mostrar(dados_venda, leitura = True))),
