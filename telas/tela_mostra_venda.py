@@ -142,15 +142,31 @@ class TelaMostraVenda(Tela):
 
     def mostrar(self, dados_venda = {}):
 
+        print('lambda', list(map(lambda item: item.produto.nome, dados_venda['itens'])))
+
         layout = [
                     [self.titulo('Venda de Código: ' + str(dados_venda["codigo"]))],
                     list(map(lambda campo : campo, self.campos_para_mostrar(dados_venda, leitura = True))),
+                    self.mostrar_itens(dados_venda),
                     [
                         self.botao("Entregar", "bt-entregar") if dados_venda['encomenda'] == 'Sim' and dados_venda['entregue'] == 'Não' else [], 
                         self.botao("Cancelar Encomenda", "bt-cancelar") if dados_venda['encomenda'] == 'Sim' else [], 
                         self.botao("Voltar", "bt-voltar")
                     ]
+
                 ]
        
         self.window = self.janela(layout)
         return self.read()
+
+    def mostrar_itens(self, dados_venda):
+
+        lb_itens = self.label('Itens: ')
+        in_itens = self.lista(['Quantidade', 'Item', 'Preço'], list(map(lambda item: [item.quantidade, item.produto.nome, int(item.quantidade)*item.produto.preco_venda], dados_venda['itens'])), n_linhas=5)
+
+        campos = [
+            [lb_itens],
+            [in_itens]
+        ]
+
+        return campos

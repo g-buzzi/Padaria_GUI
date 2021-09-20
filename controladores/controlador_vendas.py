@@ -9,7 +9,6 @@ from excecoes.duplicated_exception import DuplicatedException
 from excecoes.input_error import InputError
 from telas.tela_mostra_venda import TelaMostraVenda
 from telas.tela_lista_venda import TelaListaVenda
-from telas.tela_venda import TelaVenda
 from entidades.venda import Venda
 from controladores.controlador_abstrato import Controlador
 from entidades.funcionario import Funcionario
