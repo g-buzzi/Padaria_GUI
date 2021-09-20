@@ -177,6 +177,8 @@ class ControladorClientes(Controlador):
                 raise DuplicatedException(mensagem_personalizada='Já existe cliente com esse cpf.')
 
     def seleciona_cliente_por_cpf(self, cpf: str) -> Cliente:
+        cliente_encontrado = None
+        
         for cliente in self.__dao.get_objects():
             if cpf == cliente.cpf:
                 cliente_encontrado = cliente

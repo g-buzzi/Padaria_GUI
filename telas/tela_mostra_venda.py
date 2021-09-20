@@ -28,10 +28,11 @@ class TelaMostraVenda(Tela):
 
       
 
-    def campos_para_mostrar(self, dados_venda = defaultdict(lambda: None), leitura = True, tipo='Encomenda'):
+    def campos_para_mostrar(self, dados_venda, leitura = True):
 
-        lb_codigo = self.label("Código: ", tamanho=(17,1))
-        in_codigo = self.entrada("codigo", dados_venda["codigo"], leitura= leitura, tamanho= (33, 1))
+
+        lb_tipo = self.label("Encomenda: ", tamanho=(17,1))
+        in_tipo = self.entrada("tipo", dados_venda["encomenda"], leitura= leitura, tamanho= (33, 1))
 
         lb_data_entrega = self.label("Data de entrega: ", tamanho=(17,1))
         in_data_entrega = self.entrada("data_entrega", dados_venda["data_entrega"], leitura= leitura, tamanho= (33, 1))
@@ -46,17 +47,20 @@ class TelaMostraVenda(Tela):
         in_atendente = self.entrada("atendente", dados_venda["atendente"], leitura = leitura, tamanho= (33, 1))
 
         lb_total = self.label("Total: ", tamanho=(17,1))
-        in_total = self.entrada("total", dados_venda["total"], leitura = leitura, tamanho= (33, 1))
+        in_total = self.entrada("total", dados_venda["preco_final"], leitura = leitura, tamanho= (33, 1))
 
         lb_desconto = self.label("Desconto: ", tamanho=(17,1))
         in_desconto = self.entrada("desconto", dados_venda["desconto"], leitura = leitura, tamanho= (33, 1))
+        print(dados_venda)
 
         campos = [
-                    [lb_codigo, in_codigo, (lb_data_entrega, in_data_entrega) if tipo=='Encomenda' else None],
-                    [lb_cliente, in_cliente, (lb_entregue, in_entregue) if tipo=='Encomenda' else None],
+                    [lb_tipo, in_tipo],
+                    [lb_data_entrega, in_data_entrega] if dados_venda['encomenda'] == 'Sim' else [],
+                    [lb_cliente, in_cliente],
+                    [lb_entregue, in_entregue],
                     [lb_atendente, in_atendente],
-                    [lb_total, in_total],
-                    [lb_desconto, in_desconto]
+                    [lb_desconto, in_desconto],
+                    [lb_total, in_total]
                 ]
 
         return campos
@@ -65,10 +69,10 @@ class TelaMostraVenda(Tela):
         titulo = self.titulo("Adicionar Item")
 
         lb_codigo_produto = self.label("Código do produto:")
-        in_codigo_produto = self.entrada("codigo_produto", dados["codigo_produto"],  tamanho=(20, 1), padding = ((1,0), 2))
+        in_codigo_produto = self.entrada("codigo_produto", dados["codigo_produto"],  tamanho= (33, 1))
 
         lb_quantidade = self.label("Quantidade:")
-        in_quantidade = self.entrada("quantidade", dados["quantidade"], tamanho=(30,1))
+        in_quantidade = self.entrada("quantidade", dados["quantidade"], tamanho= (33, 1))
 
         bt_adicionar = self.botao("Adicionar", "adicionar")
         bt_cancelar = self.botao("Cancelar", "cancelar")
@@ -76,8 +80,7 @@ class TelaMostraVenda(Tela):
         layout = [
                     [titulo], 
                     [lb_codigo_produto, in_codigo_produto],
-                    [lb_quantidade], 
-                    [in_quantidade],
+                    [lb_quantidade, in_quantidade], 
                     [bt_adicionar, bt_cancelar]
                 ]
 
@@ -87,23 +90,23 @@ class TelaMostraVenda(Tela):
     def campos_para_cadastro(self, dados_venda = defaultdict(lambda: None), tipo=None, leitura = False):
 
 
-        lb_codigo = self.label("Código: ", tamanho=(17,1))
+        lb_codigo = self.label("Código*: ", tamanho=(17,1))
         in_codigo = self.entrada("codigo", dados_venda["codigo"], leitura=leitura, tamanho= (33, 1))
         
         if tipo == 'tipo_encomenda':
-            lb_data_entrega = self.label("Data de entrega: ", tamanho=(17,1))
+            lb_data_entrega = self.label("Data de entrega*: ", tamanho=(17,1))
             in_data_entrega = self.entrada("data_entrega", dados_venda["data_entrega"], leitura=leitura, tamanho= (33, 1))
 
-        lb_cliente = self.label("Cliente: ", tamanho=(17,1))
+        lb_cliente = self.label("Cliente*: " if tipo == 'tipo_encomenda' else 'Cliente: ', tamanho=(17,1))
         in_cliente = self.entrada("cliente", dados_venda["cliente"], leitura= leitura, tamanho= (33, 1))
 
-        lb_atendente = self.label("Atendente: ", tamanho=(17,1))
+        lb_atendente = self.label("Atendente*: ", tamanho=(17,1))
         in_atendente = self.entrada("atendente", dados_venda["atendente"], leitura = leitura, tamanho= (33, 1))
 
         lb_desconto = self.label("Desconto: ", tamanho=(17,1))
         in_desconto = self.entrada("desconto", dados_venda["desconto"], leitura = leitura, tamanho= (33, 1))
 
-        lb_itens = self.label("Itens:", tamanho=(46,1))
+        lb_itens = self.label("Itens*:", tamanho=(46,1))
         in_itens = self.lista(["Código", "Nome", "Quantidade", "Preço"], dados_venda["lista"], chave='itens', n_linhas= 5, padding=(1,1))
 
         bt_adicionar_item = self.botao("Adicionar", "bt_adicionar_item", padding=((1, 0), (1, 3)), expand_x= True)
@@ -137,14 +140,14 @@ class TelaMostraVenda(Tela):
         self.window = self.janela(layout)
         return self.read()
 
-    def mostrar(self, dados_venda = {}, tipo='Encomenda'):
+    def mostrar(self, dados_venda = {}):
 
         layout = [
-                    [self.titulo('Venda ' + dados_venda["codigo"])],
-                    list(map(lambda campo : campo, self.campos(dados_venda, leitura = True))),
+                    [self.titulo('Venda de Código: ' + str(dados_venda["codigo"]))],
+                    list(map(lambda campo : campo, self.campos_para_mostrar(dados_venda, leitura = True))),
                     [
-                        self.botao("Entregar", "bt-entregar") if tipo == 'Encomenda' else None, 
-                        self.botao("Cancelar", "bt-cancelar") if tipo == 'Encomenda' else None, 
+                        self.botao("Entregar", "bt-entregar") if dados_venda['encomenda'] == 'Sim' and dados_venda['entregue'] == 'Não' else [], 
+                        self.botao("Cancelar Encomenda", "bt-cancelar") if dados_venda['encomenda'] == 'Sim' else [], 
                         self.botao("Voltar", "bt-voltar")
                     ]
                 ]

@@ -17,4 +17,8 @@ class VendaDao(DAO):
 
     def remove(self, key: int):
         if isinstance(key, int):
-            return super().remove(key)
+            return super().remove(key, 'Venda')
+
+    def update(self, codigo_venda: int, venda_atualizada: Venda):
+        if isinstance(venda_atualizada, Venda) and isinstance(codigo_venda, int):
+            super().alter(codigo_venda, venda_atualizada.codigo, venda_atualizada)
