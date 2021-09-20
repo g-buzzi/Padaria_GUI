@@ -68,21 +68,17 @@ class ControladorVendas(Controlador):
         dados_venda['lista'] = []
         itens = []
         botao, tipo = self.tela.opcoes_vendas()
-        continue_while = True
+        sair = False
 
-        if botao == 'bt-cancelar':
-            self.tela.close()
-
-        while True:
+        while botao != 'bt-cancelar' and sair == False:
             botao_tela_cadastro, dados_form = self.tela.cadastrar(dados_venda, tipo='tipo_encomenda' if tipo['tipo_encomenda'] else 'tipo_venda')
             
             if botao_tela_cadastro == 'bt_adicionar_item':
-           
+        
                 item = self.adicionar_item()
                 if isinstance(item, Item):
                     dados_venda['lista'].append([item.produto.codigo, item.produto.nome, item.quantidade, item.produto.preco_venda ])
-                    itens.append(item)
-                botao_tela_cadastro = None           
+                    itens.append(item)        
             
                     
             if botao_tela_cadastro == 'bt-cadastrar':
@@ -101,7 +97,7 @@ class ControladorVendas(Controlador):
                     continue
 
             if botao_tela_cadastro == 'bt-voltar':
-                self.tela.close()
+                sair = True
 
     def mostrar_venda(self, dados):
 
