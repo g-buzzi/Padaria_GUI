@@ -51,7 +51,6 @@ class TelaMostraVenda(Tela):
 
         lb_desconto = self.label("Desconto: ", tamanho=(17,1))
         in_desconto = self.entrada("desconto", dados_venda["desconto"], leitura = leitura, tamanho= (33, 1))
-        print(dados_venda)
 
         campos = [
                     [lb_tipo, in_tipo],
@@ -74,8 +73,8 @@ class TelaMostraVenda(Tela):
         lb_quantidade = self.label("Quantidade:")
         in_quantidade = self.entrada("quantidade", dados["quantidade"], tamanho= (33, 1))
 
-        bt_adicionar = self.botao("Adicionar", "adicionar")
-        bt_cancelar = self.botao("Cancelar", "cancelar")
+        bt_adicionar = self.botao("Adicionar", "adicionar", tamanho=(20, 1))
+        bt_cancelar = self.botao("Cancelar", "cancelar", tamanho=(20, 1))
 
         layout = [
                     [titulo], 
@@ -132,8 +131,8 @@ class TelaMostraVenda(Tela):
                     [self.titulo("Cadastrar Venda" if tipo == 'tipo_venda' else "Cadastrar Encomenda")],
                     list(map(lambda campo : campo, self.campos_para_cadastro(dados_venda, tipo=tipo))),
                     [
-                        self.botao("Cadastrar", "bt-cadastrar"), 
-                        self.botao("Voltar", "bt-voltar")
+                        self.botao("Cadastrar", "bt-cadastrar", tamanho=(20, 1)), 
+                        self.botao("Voltar", "bt-voltar", tamanho=(20, 1))
                     ]
                 ]
 
@@ -149,9 +148,9 @@ class TelaMostraVenda(Tela):
                     list(map(lambda campo : campo, self.campos_para_mostrar(dados_venda, leitura = True))),
                     self.mostrar_itens(dados_venda),
                     [
-                        self.botao("Entregar", "bt-entregar") if dados_venda['encomenda'] == 'Sim' and dados_venda['entregue'] == 'Não' else [], 
-                        self.botao("Cancelar Encomenda", "bt-cancelar") if dados_venda['encomenda'] == 'Sim' else [], 
-                        self.botao("Voltar", "bt-voltar")
+                        self.botao("Entregar", "bt-entregar", tamanho=(12, 1)) if dados_venda['encomenda'] == 'Sim' and dados_venda['entregue'] == 'Não' else [], 
+                        self.botao("Cancelar Encomenda", "bt-cancelar", tamanho=(12, 1)) if dados_venda['encomenda'] == 'Sim' and dados_venda['entregue'] == 'Não' else [], 
+                        self.botao("Voltar", "bt-voltar", tamanho=(12, 1))
                     ]
 
                 ]

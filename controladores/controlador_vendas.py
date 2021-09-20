@@ -1,4 +1,7 @@
 from collections import defaultdict
+
+from PySimpleGUI.PySimpleGUI import I
+from controladores.controlador_estoque import ControladorEstoque
 from excecoes.empty_field import EmptyFieldError
 from entidades.item import Item
 from controladores.controlador_produtos import ControladorProdutos
@@ -30,6 +33,7 @@ class ControladorVendas(Controlador):
         super().__init__(TelaListaVenda())
         self.__dao = VendaDao()
         self.__pesquisa = False
+        self.__lista = []
 
     def inicia(self):
         self.abre_tela_inicial()
@@ -42,25 +46,43 @@ class ControladorVendas(Controlador):
 
     def listar(self, valores = None):
         self.__pesquisa = False
-        self.tela = TelaListaVenda()
-        self.__lista = self.dados_vendas()
-        return self.tela.lista_vendas(self.__lista, self.__pesquisa)
-
 
     def abre_tela_inicial(self, dados=None):
         switcher = {"cadastrar": self.cadastra_venda, 
-                    "pesquisar": self.listar, 
+                    "pesquisar": self.pesquisar, 
                     "lista_clique_duplo": self.mostrar_venda,
                     "listar": self.listar}
         
         while True:
-            botao, valores = self.listar()
+            self.tela = TelaListaVenda()
+            self.tela.close()
+            if self.__pesquisa is False:
+                self.__lista = self.dados_vendas()
+            else:
+                self.__lista = self.pesquisa_vendas()
+            
+            botao, valores = self.tela.lista_vendas(self.__lista, self.__pesquisa)
+           
             
             if botao == 'voltar':
                 self.tela.close()
                 break
 
             switcher[botao](valores)
+
+    def pesquisar(self, valores = None):
+        pesquisa = self.tela.pesquisar('Nome do atendente ou cliente: ')
+
+        if pesquisa is not None:
+            self.__pesquisa = pesquisa
+            
+
+    def pesquisa_vendas(self):
+        dados = []
+        for venda in self.__dao.get_objects():
+            if self.__pesquisa.lower() in str(venda.atendente.nome.lower()) or (isinstance(venda.cliente, Cliente) and self.__pesquisa.lower() in venda.cliente.nome.lower()):
+                dados.append([venda.codigo, venda.atendente.nome, venda.cliente.nome if isinstance(venda.cliente, Cliente) else '--', venda.encomenda, venda.preco_final])
+        return dados
 
     def cadastra_venda(self, valores):
         self.tela = TelaMostraVenda()
@@ -71,20 +93,34 @@ class ControladorVendas(Controlador):
         sair = False
 
         while botao != 'bt-cancelar' and sair == False:
+            self.tela.close()
+
             botao_tela_cadastro, dados_form = self.tela.cadastrar(dados_venda, tipo='tipo_encomenda' if tipo['tipo_encomenda'] else 'tipo_venda')
-            
+            dados_venda['codigo'] = dados_form['codigo']
+            dados_venda['atendente'] = dados_form['atendente']
+            dados_venda['cliente'] = dados_form['cliente']
+            dados_venda['desconto'] = dados_form['desconto']
+            if tipo['tipo_encomenda']:
+                dados_venda['data_entrega'] = dados_form['data_entrega']
+
             if botao_tela_cadastro == 'bt_adicionar_item':
         
                 item = self.adicionar_item()
                 if isinstance(item, Item):
                     dados_venda['lista'].append([item.produto.codigo, item.produto.nome, item.quantidade, item.produto.preco_venda ])
-                    itens.append(item)        
-            
+                    itens.append(item)
+
+            if botao_tela_cadastro == 'bt_remover_item':
+                try:
+                    self.remover_item(dados_venda, dados_form, itens)
+                except IndexError:
+                    self.tela.mensagem_erro('Nenhum item selecionado!')
+                    continue            
                     
             if botao_tela_cadastro == 'bt-cadastrar':
                 try:
                     dados_form['itens'] = itens
-                    dados_venda = self.tratar_dados(dados_form, tipo='tipo_encomenda' if tipo['tipo_encomenda'] else 'tipo_venda')
+                    dados_form = self.tratar_dados(dados_form, tipo='tipo_encomenda' if tipo['tipo_encomenda'] else 'tipo_venda')
                     self.salva_dados_venda(dados_form)
                     self.tela.mensagem('Venda cadastrada com sucesso!')
                     self.tela.close()
@@ -95,9 +131,19 @@ class ControladorVendas(Controlador):
                 except DuplicatedException as e:
                     self.tela.mensagem_erro(str(e))
                     continue
+                except ValueError:
+                    self.tela.mensagem_erro("Produtos insuficientes para venda")
+                    continue
 
             if botao_tela_cadastro == 'bt-voltar':
                 sair = True
+                self.tela.close()
+
+    def remover_item(self, dados_venda, dados_form, itens):
+        posicao = dados_form['itens'][0]
+        dados_venda['lista'].pop(posicao)
+        itens.pop(posicao)
+        self.tela.mensagem('Item removido!')
 
     def mostrar_venda(self, dados):
 
@@ -143,26 +189,37 @@ class ControladorVendas(Controlador):
 
     def adicionar_item(self):
         botao, valores = self.tela.adiciona_item_venda()
-        codigo = self.formata_int(valores['codigo_produto'], 'Código')
+
         if botao == 'adicionar':
             try:
-                item = Item(ControladorProdutos().seleciona_produto_por_codigo(codigo), valores['quantidade'])
+                codigo = self.formata_int(valores['codigo_produto'], 'Código')
+                quantidade = self.formata_int(valores['quantidade'], 'Quantidade')
+                item = Item(ControladorProdutos().seleciona_produto_por_codigo(codigo), quantidade)
                 return item
             except NotFoundException as e:
                 self.tela.mensagem_erro(str(e))
+
+            except InputError as e:
+                self.tela.mensagem_erro(e.mensagem)
      
         self.tela.close()
 
     def salva_dados_venda(self, dados_venda):
-        self.__dao.add(Venda(
+        venda = Venda(
                     dados_venda['codigo'],
                     dados_venda['atendente'],
                     dados_venda['encomenda'],
                     dados_venda['desconto'],
                     dados_venda['data_entrega'],
                     dados_venda['cliente'],
-                    dados_venda['itens']
-                ))
+                    dados_venda['itens'])
+
+        if not dados_venda['encomenda']:
+            ControladorEstoque().processa_venda(venda)
+      
+        self.__dao.add(venda)
+
+        
 
     def tratar_dados(self, dados: dict, tipo=None):
         dados['cliente'] = self.seleciona_cliente(dados['cliente'], tipo)
@@ -176,6 +233,7 @@ class ControladorVendas(Controlador):
         return dados
 
     def trata_itens(self, itens):
+        
 
         if len(itens) == 0:
             raise EmptyFieldError("Obrigatório algum item para venda!")
@@ -211,10 +269,17 @@ class ControladorVendas(Controlador):
 
     def conclui_encomenda(self, venda: Venda):
 
-        venda_atualizada = venda
-        venda_atualizada.entregue = True
-        self.__dao.update(venda.codigo, venda_atualizada)
-        self.tela.mensagem("Encomenda entregue com sucesso.")
+        try:
+            ControladorEstoque().processa_venda(venda)
+            venda_atualizada = venda
+            venda_atualizada.entregue = True
+            self.__dao.update(venda.codigo, venda_atualizada)
+            self.tela.mensagem("Encomenda entregue com sucesso.")
+        except ValueError:
+            self.tela.mensagem_erro('Produtos insuficientes para concluir a encomenda')
+        except KeyError:
+            self.tela.mensagem_erro('Um dos produtos não existe no sistema!')
+        
            
 
     def verifica_se_ja_existe_venda_com_codigo(self, codigo) -> Venda:

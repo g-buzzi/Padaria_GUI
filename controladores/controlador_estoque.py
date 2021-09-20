@@ -288,10 +288,10 @@ class ControladorEstoque(Controlador):
     def possibilidade_venda(self, venda: Venda):
         produtos = defaultdict(lambda: 0)
         for item in venda.itens:
-            produtos[item.produto] += item.quantidade
+            produto = ControladorProdutos().seleciona_produto_por_codigo(item.produto.codigo)
+            produtos[produto] += item.quantidade
         for produto, quantidade in produtos.items():
             if produto.quantidade_estoque < quantidade:
-                self.tela.mensagem_erro("Quantidade insuficente de {} no estoque".format(produto.nome))
                 raise ValueError
         return produtos
 
